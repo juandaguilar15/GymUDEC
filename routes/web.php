@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NurseController;
+use App\Http\Controllers\AnalyticsController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,4 +37,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/enfermero/info-fisica/{email}', [NurseController::class, 'savePhysicalInfo'])->name('nurse.save-info');
     Route::get('/enfermero/ver/{email}', [NurseController::class, 'viewStudentInfo'])->name('nurse.view-info');
     Route::delete('/enfermero/eliminar/{email}', [NurseController::class, 'deletePhysicalInfo'])->name('nurse.delete-info');
+    
+    // Rutas de análisis y estadísticas
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/export-csv', [AnalyticsController::class, 'exportCsv'])->name('analytics.export-csv');
 });

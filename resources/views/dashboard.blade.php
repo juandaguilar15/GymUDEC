@@ -287,6 +287,9 @@
                 <a href="{{ route('nurse.search-student') }}" class="action-btn">
                     🔍 Buscar y Registrar Estudiante
                 </a>
+                <a href="{{ route('analytics.index') }}" class="action-btn">
+                    📊 Análisis y Estadísticas
+                </a>
             </div>
         @elseif(auth()->user()->role === 'administrador')
             <div class="role-actions">
