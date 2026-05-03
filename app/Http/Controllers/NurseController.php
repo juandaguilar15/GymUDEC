@@ -59,6 +59,7 @@ class NurseController extends Controller
             'weight' => 'required|numeric|min:20|max:300',
             'condition' => 'nullable|string|max:1000',
             'recommendation' => 'nullable|string|max:1000',
+            'permisos' => 'required|in:libre,limitado',
         ]);
         
         $physicalInfo = PhysicalInfo::updateOrCreate(

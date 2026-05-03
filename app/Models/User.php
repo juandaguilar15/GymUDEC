@@ -53,4 +53,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(PhysicalInfo::class, 'email', 'email');
     }
+
+    // Relación: Un usuario tiene muchas rutinas
+    public function routines()
+    {
+        return $this->hasMany(Routine::class);
+    }
 }

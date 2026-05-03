@@ -17,6 +17,7 @@ class PhysicalInfo extends Model
         'weight',
         'condition',
         'recommendation',
+        'permisos',
     ];
     
     protected $casts = [

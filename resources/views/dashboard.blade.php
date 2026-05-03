@@ -297,9 +297,9 @@
                 <p style="color: #666; margin-bottom: 1.5rem;">
                     Accede a las herramientas administrativas para gestionar el sistema.
                 </p>
-                <button class="action-btn" disabled style="opacity: 0.6; cursor: not-allowed;">
-                    🔧 Próximamente
-                </button>
+                <a href="{{ route('admin.index') }}" class="action-btn">
+                    ⚙️ Panel de Administración
+                </a>
             </div>
         @else
             <div class="role-actions">

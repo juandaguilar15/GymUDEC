@@ -276,6 +276,16 @@
                           placeholder="Notas y recomendaciones personalizadas">{{ $physicalInfo->recommendation ?? old('recommendation') }}</textarea>
                 <p class="info-text">Ejemplo: Evitar ejercicios de impacto, realizar calentamiento extra</p>
             </div>
+
+            <div class="form-group">
+                <label for="permisos">Permisos para Crear Rutinas <span class="required">*</span></label>
+                <select id="permisos" name="permisos" required>
+                    <option value="">Selecciona una opción</option>
+                    <option value="libre" {{ ($physicalInfo->permisos ?? old('permisos')) === 'libre' ? 'selected' : '' }}>Libre (El estudiante puede crear sus propias rutinas)</option>
+                    <option value="limitado" {{ ($physicalInfo->permisos ?? old('permisos')) === 'limitado' ? 'selected' : '' }}>Limitado (Solo el admin puede asignar rutinas)</option>
+                </select>
+                <p class="info-text">Selecciona según el estado físico y experiencia del estudiante en el gimnasio</p>
+            </div>
             
             <div class="button-group">
                 <button type="submit" class="submit-btn">💾 Guardar Información</button>
