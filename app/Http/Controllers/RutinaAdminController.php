@@ -10,10 +10,21 @@ use Illuminate\Http\Request;
 class RutinaAdminController extends Controller
 {
     /**
+     * Verifica que el usuario sea administrador.
+     */
+    private function authorizeAdmin()
+    {
+        if (! auth()->check() || auth()->user()->role !== 'administrador') {
+            abort(403, 'Acceso denegado.');
+        }
+    }
+
+    /**
      * Mostrar lista de rutinas asignadas por el administrador
      */
     public function index(Request $request)
     {
+        $this->authorizeAdmin();
         $search = $request->input('search');
         $query = RutinaAdmin::query();
 
@@ -36,7 +47,13 @@ class RutinaAdminController extends Controller
      */
     public function create()
     {
-        $routines = Routine::where('status', 'publica')->get();
+        $this->authorizeAdmin();
+        $routines = Routine::where('status', 'publica')
+            ->whereHas('users', function ($query) {
+                $query->where('role', 'administrador');
+            })
+            ->get();
+
         $students = User::where('role', 'estudiante')->get();
 
         return view('admin.gym.rutinas.create', [
@@ -50,6 +67,7 @@ class RutinaAdminController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
         $validated = $request->validate([
             'routine_id' => 'required|exists:routines,id',
             'student_email' => 'required|email|exists:users,email',
@@ -57,6 +75,9 @@ class RutinaAdminController extends Controller
 
         // Obtener datos de la rutina
         $routine = Routine::findOrFail($validated['routine_id']);
+        if (! $routine->users()->where('role', 'administrador')->exists()) {
+            return back()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
+        }
         
         // Obtener datos del estudiante
         $student = User::where('email', $validated['student_email'])->firstOrFail();
@@ -69,6 +90,8 @@ class RutinaAdminController extends Controller
             'student_email' => $student->email,
         ]);
 
+        $routine->users()->syncWithoutDetaching([$student->id]);
+
         return redirect()->route('rutinas.index')
             ->with('success', "Rutina '{$routine->name}' asignada a {$student->name} exitosamente.");
     }
@@ -78,6 +101,7 @@ class RutinaAdminController extends Controller
      */
     public function edit($id)
     {
+        $this->authorizeAdmin();
         $rutinaAdmin = RutinaAdmin::findOrFail($id);
         $routines = Routine::where('status', 'publica')->get();
         $students = User::where('role', 'estudiante')->get();
@@ -94,6 +118,7 @@ class RutinaAdminController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->authorizeAdmin();
         $rutinaAdmin = RutinaAdmin::findOrFail($id);
 
         $validated = $request->validate([
@@ -108,12 +133,18 @@ class RutinaAdminController extends Controller
         $student = User::where('email', $validated['student_email'])->firstOrFail();
 
         // Actualizar asignación
+        if (! $routine->users()->where('role', 'administrador')->exists()) {
+            return back()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
+        }
+
         $rutinaAdmin->update([
             'routine_id' => $routine->id,
             'routine_name' => $routine->name,
             'student_name' => $student->name,
             'student_email' => $student->email,
         ]);
+
+        $routine->users()->syncWithoutDetaching([$student->id]);
 
         return redirect()->route('rutinas.index')
             ->with('success', "Asignación de rutina actualizada exitosamente.");
@@ -124,6 +155,7 @@ class RutinaAdminController extends Controller
      */
     public function destroy($id)
     {
+        $this->authorizeAdmin();
         $rutinaAdmin = RutinaAdmin::findOrFail($id);
         $rutinaName = $rutinaAdmin->routine_name;
         $studentName = $rutinaAdmin->student_name;

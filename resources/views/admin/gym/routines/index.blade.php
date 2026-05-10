@@ -468,7 +468,7 @@
                                     <span class="status-badge status-{{ $routine->status }}">{{ ucfirst($routine->status) }}</span>
                                 </td>
                                 <td>
-                                    <span class="exercise-count">{{ $routine->ejerciciosSeleccionados->count() }} ejercicio(s)</span>
+                                    <span class="exercise-count">{{ $routine->dayExercises->count() }} ejercicio(s)</span>
                                 </td>
                                 <td>
                                     <div class="actions">

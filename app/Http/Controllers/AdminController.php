@@ -9,9 +9,17 @@ use Carbon\Carbon;
 
 class AdminController extends Controller
 {
+    private function authorizeAdmin()
+    {
+        if (! auth()->check() || auth()->user()->role !== 'administrador') {
+            abort(403, 'Acceso denegado.');
+        }
+    }
+
     // Dashboard principal del admin
     public function index()
     {
+        $this->authorizeAdmin();
         // Estadísticas generales
         $totalUsers = User::count();
         $totalAdmins = User::where('role', 'administrador')->count();
@@ -55,6 +63,7 @@ class AdminController extends Controller
     // Ver análisis de estudiantes (como enfermero)
     public function viewAnalytics(Request $request)
     {
+        $this->authorizeAdmin();
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonths(3);
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
         
@@ -92,6 +101,7 @@ class AdminController extends Controller
     // Listar usuarios con búsqueda y paginación
     public function listUsers(Request $request)
     {
+        $this->authorizeAdmin();
         $search = $request->input('search');
         
         $query = User::query();
@@ -112,6 +122,7 @@ class AdminController extends Controller
     // Cambiar rol de usuario
     public function updateUserRole(Request $request, $id)
     {
+        $this->authorizeAdmin();
         $user = User::findOrFail($id);
         
         $validated = $request->validate([
@@ -127,6 +138,7 @@ class AdminController extends Controller
     // Eliminar usuario
     public function deleteUser($id)
     {
+        $this->authorizeAdmin();
         $user = User::findOrFail($id);
         $userName = $user->name;
         

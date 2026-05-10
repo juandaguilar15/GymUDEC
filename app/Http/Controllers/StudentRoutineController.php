@@ -2,55 +2,86 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Routine;
 use App\Models\Exercise;
+use App\Models\Routine;
 use App\Models\RoutineDayExercise;
 use App\Models\RoutineTrainingDay;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class RoutineController extends Controller
+class StudentRoutineController extends Controller
 {
     /**
-     * Verifica que el usuario sea administrador.
+     * Verifica que el usuario actual sea estudiante.
      */
-    private function authorizeAdmin()
+    private function authorizeStudent()
     {
-        if (! auth()->check() || auth()->user()->role !== 'administrador') {
+        if (! auth()->check() || auth()->user()->role !== 'estudiante') {
             abort(403, 'Acceso denegado.');
         }
     }
 
     /**
-     * Mostrar lista de rutinas creadas
+     * Obtiene la información física del estudiante.
      */
-    public function index(Request $request)
+    private function getStudentPhysicalInfo()
     {
-        $this->authorizeAdmin();
+        $physicalInfo = auth()->user()->physicalInfo;
 
-        $search = $request->input('search');
-        $query = Routine::query();
-
-        if ($search) {
-            $query->where('name', 'like', "%$search%")
-                  ->orWhere('objective', 'like', "%$search%")
-                  ->orWhere('level', 'like', "%$search%");
+        if (! $physicalInfo) {
+            abort(403, 'Necesitas registrar tu información física en enfermería antes de acceder a las rutinas.');
         }
 
-        $routines = $query->paginate(15);
+        return $physicalInfo;
+    }
 
-        return view('admin.gym.routines.index', [
-            'routines' => $routines,
-            'search' => $search,
+    /**
+     * Muestra la lista de rutinas del estudiante.
+     */
+    public function index()
+    {
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
+        $studentId = auth()->id();
+
+        // Obtenemos todas las rutinas asociadas al estudiante
+        $allRoutines = Routine::whereHas('users', function ($query) use ($studentId) {
+            $query->where('users.id', $studentId); // Solución al error de ambigüedad
+        })
+        ->with(['trainingDays.exercises.exercise', 'users'])
+        ->get();
+
+        // Separar rutinas: asignadas por el administrador vs creadas por el estudiante
+        // Las asignadas por admin tienen al menos un usuario con rol 'administrador'
+        $assignedRoutines = $allRoutines->filter(function ($routine) {
+            return $routine->users->contains('role', 'administrador');
+        });
+
+        $myRoutines = $allRoutines->filter(function ($routine) {
+            return !$routine->users->contains('role', 'administrador');
+        });
+
+        return view('student.routines.index', [
+            'routines' => $allRoutines,
+            'assignedRoutines' => $assignedRoutines,
+            'myRoutines' => $myRoutines,
+            'canCreate' => $physicalInfo->permisos === 'libre',
+            'permisos' => $physicalInfo->permisos,
         ]);
     }
 
     /**
-     * Mostrar formulario para crear nueva rutina
+     * Muestra el formulario para que el estudiante cree una rutina.
      */
     public function create()
     {
-        $this->authorizeAdmin();
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
+
+        if ($physicalInfo->permisos !== 'libre') {
+            return redirect()->route('student.routines.index')
+                ->with('error', 'Tu permiso actual es limitado. No puedes crear nuevas rutinas.');
+        }
 
         $exercises = Exercise::all();
         $days_of_week = [
@@ -63,18 +94,24 @@ class RoutineController extends Controller
             'domingo' => 'Domingo',
         ];
 
-        return view('admin.gym.routines.create', [
+        return view('student.routines.create', [
             'exercises' => $exercises,
             'days_of_week' => $days_of_week,
         ]);
     }
 
     /**
-     * Guardar nueva rutina
+     * Guarda la nueva rutina creada por el estudiante.
      */
     public function store(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
+
+        if ($physicalInfo->permisos !== 'libre') {
+            return redirect()->route('student.routines.index')
+                ->with('error', 'Tu permiso actual es limitado. No puedes crear nuevas rutinas.');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:routines',
@@ -147,9 +184,7 @@ class RoutineController extends Controller
             'status' => $validated['status'],
         ]);
 
-        if (auth()->check()) {
-            $routine->users()->sync([auth()->id()]);
-        }
+        $routine->users()->sync([auth()->id()]);
 
         foreach ($validated['training_days'] as $index => $day) {
             $routineDay = $routine->trainingDays()->create([
@@ -175,63 +210,79 @@ class RoutineController extends Controller
             }
         }
 
-        return redirect()->route('routines.index')
-            ->with('success', "Rutina '{$validated['name']}' creada exitosamente con " . count($validated['exercises']) . " ejercicio(s).");
+        return redirect()->route('student.routines.index')
+            ->with('success', "Rutina '{$validated['name']}' creada exitosamente.");
     }
 
     /**
-     * Mostrar formulario para editar rutina
+     * Muestra los detalles de una rutina a la que el estudiante tiene acceso.
+     */
+    public function show($id)
+    {
+        $this->authorizeStudent();
+        $this->getStudentPhysicalInfo();
+
+        $routine = Routine::whereHas('users', function ($query) {
+            $query->where('users.id', auth()->id());
+        })
+        ->with('trainingDays.exercises.exercise')
+        ->findOrFail($id);
+
+        return view('student.routines.show', [
+            'routine' => $routine,
+        ]);
+    }
+
+    /**
+     * Muestra el formulario para editar una rutina creada por el estudiante.
      */
     public function edit($id)
     {
-        $this->authorizeAdmin();
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
 
-        $routine = Routine::findOrFail($id);
+        if ($physicalInfo->permisos !== 'libre') {
+            return redirect()->route('student.routines.index')->with('error', 'Tu permiso es limitado.');
+        }
+
+        $routine = Routine::whereHas('users', function ($query) {
+            $query->where('users.id', auth()->id());
+        })->findOrFail($id);
+
+        // Impedir edición de rutinas asignadas por administradores
+        if ($routine->users()->where('role', 'administrador')->exists()) {
+            return redirect()->route('student.routines.index')->with('error', 'No puedes editar rutinas asignadas.');
+        }
+
         $exercises = Exercise::all();
-        $selectedExercises = $routine->trainingDays->flatMap(function ($day) {
-            return $day->exercises->map(function ($pivotExercise) use ($day) {
-                return [
-                    'id' => $pivotExercise->id,
-                    'exercise_id' => $pivotExercise->id_ejercicio,
-                    'day_name' => $day->day_name,
-                    'sets' => $pivotExercise->sets,
-                    'reps' => $pivotExercise->reps,
-                    'duration' => $pivotExercise->duration,
-                    'duration_unit' => $pivotExercise->duration_unit,
-                    'descansos' => $pivotExercise->rests,
-                    'descansos_unidad' => $pivotExercise->rests_unit,
-                ];
-            });
-        })->toArray();
-        $trainingDays = $routine->trainingDays()->pluck('day_name')->toArray();
-        
-        $days_of_week = [
-            'lunes' => 'Lunes',
-            'martes' => 'Martes',
-            'miércoles' => 'Miércoles',
-            'jueves' => 'Jueves',
-            'viernes' => 'Viernes',
-            'sábado' => 'Sábado',
-            'domingo' => 'Domingo',
-        ];
+        $days_of_week = ['lunes' => 'Lunes', 'martes' => 'Martes', 'miércoles' => 'Miércoles', 'jueves' => 'Jueves', 'viernes' => 'Viernes', 'sábado' => 'Sábado', 'domingo' => 'Domingo'];
 
-        return view('admin.gym.routines.edit', [
+        return view('student.routines.edit', [
             'routine' => $routine,
             'exercises' => $exercises,
-            'selectedExercises' => $selectedExercises,
-            'trainingDays' => $trainingDays,
             'days_of_week' => $days_of_week,
         ]);
     }
 
     /**
-     * Actualizar rutina existente
+     * Actualiza la rutina creada por el estudiante.
      */
     public function update(Request $request, $id)
     {
-        $this->authorizeAdmin();
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
 
-        $routine = Routine::findOrFail($id);
+        if ($physicalInfo->permisos !== 'libre') {
+            return redirect()->route('student.routines.index')->with('error', 'No tienes permisos.');
+        }
+
+        $routine = Routine::whereHas('users', function ($query) {
+            $query->where('users.id', auth()->id());
+        })->findOrFail($id);
+
+        if ($routine->users()->where('role', 'administrador')->exists()) {
+            return redirect()->route('student.routines.index')->with('error', 'Las rutinas asignadas no pueden ser modificadas.');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:routines,name,' . $routine->id,
@@ -294,28 +345,13 @@ class RoutineController extends Controller
             throw ValidationException::withMessages($errors);
         }
 
-        // Actualizar rutina
-        $routine->update([
-            'name' => $validated['name'],
-            'objective' => $validated['objective'],
-            'level' => $validated['level'],
-            'duration_weeks' => $validated['duration_weeks'],
-            'days_per_week' => $validated['days_per_week'],
-            'description' => $validated['description'],
-            'status' => $validated['status'],
-        ]);
-
-        // Remover días de entrenamiento anteriores (eliminará también sus ejercicios asignados)
+        $routine->update($validated);
         $routine->trainingDays()->delete();
 
-        // Guardar nuevos días de entrenamiento
         foreach ($validated['training_days'] as $index => $day) {
-            $routineDay = $routine->trainingDays()->create([
-                'day_name' => $day,
-                'day_order' => $index + 1,
-            ]);
-
-            // Asociar ejercicios a este día específico
+            $routineDay = $routine->trainingDays()->create(['day_name' => $day, 'day_order' => $index + 1]);
+            
+            // Buscamos los ejercicios correspondientes a este día
             foreach ($validated['exercises'] as $exIndex => $exerciseId) {
                 if (($validated['exercise_days'][$exIndex] ?? null) === $day) {
                     RoutineDayExercise::create([
@@ -323,8 +359,6 @@ class RoutineController extends Controller
                         'id_ejercicio' => $exerciseId,
                         'sets' => $validated['sets'][$exIndex] ?? null,
                         'reps' => $validated['reps'][$exIndex] ?? null,
-                        'duration' => $validated['durations'][$exIndex] ?? null,
-                        'duration_unit' => $validated['duration_units'][$exIndex] ?? null,
                         'rests' => $validated['descansos'][$exIndex] ?? null,
                         'rests_unit' => $validated['descansos_unidad'][$exIndex] ?? 'segundos',
                     ]);
@@ -332,24 +366,43 @@ class RoutineController extends Controller
             }
         }
 
-        return redirect()->route('routines.index')
-            ->with('success', "Rutina '{$validated['name']}' actualizada exitosamente.");
+        return redirect()->route('student.routines.index')->with('success', 'Rutina actualizada correctamente.');
     }
 
     /**
-     * Eliminar rutina
+     * Elimina una rutina creada por el estudiante.
      */
     public function destroy($id)
     {
-        $this->authorizeAdmin();
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
 
-        $routine = Routine::findOrFail($id);
-        $routineName = $routine->name;
+        if ($physicalInfo->permisos !== 'libre') {
+            return redirect()->route('student.routines.index')->with('error', 'No tienes permisos.');
+        }
 
-        // Los ejercicios seleccionados se eliminarán automáticamente por cascade
+        $routine = Routine::whereHas('users', function ($query) {
+            $query->where('users.id', auth()->id());
+        })->findOrFail($id);
+
+        if ($routine->users()->where('role', 'administrador')->exists()) {
+            return redirect()->route('student.routines.index')->with('error', 'No puedes eliminar una rutina asignada por un administrador.');
+        }
+
         $routine->delete();
+        return redirect()->route('student.routines.index')->with('success', 'Rutina eliminada exitosamente.');
+    }
 
-        return redirect()->route('routines.index')
-            ->with('success', "Rutina '{$routineName}' eliminada exitosamente.");
+    /**
+     * Muestra la información física del estudiante.
+     */
+    public function myPhysicalInfo()
+    {
+        $this->authorizeStudent();
+        $physicalInfo = $this->getStudentPhysicalInfo();
+
+        return view('my-physical-info', [
+            'physicalInfo' => $physicalInfo,
+        ]);
     }
 }

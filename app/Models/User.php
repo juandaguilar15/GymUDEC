@@ -54,9 +54,10 @@ class User extends Authenticatable
         return $this->hasOne(PhysicalInfo::class, 'email', 'email');
     }
 
-    // Relación: Un usuario tiene muchas rutinas
+    // Relación: Un usuario tiene muchas rutinas a través de asignaciones.
     public function routines()
     {
-        return $this->hasMany(Routine::class);
+        return $this->belongsToMany(Routine::class, 'routine_user', 'id_usuario', 'id_rutina')
+            ->withTimestamps();
     }
 }

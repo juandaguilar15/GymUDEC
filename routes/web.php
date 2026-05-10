@@ -10,6 +10,8 @@ use App\Http\Controllers\MachineController;
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\RoutineController;
 use App\Http\Controllers\RutinaAdminController;
+use App\Http\Controllers\DatabaseController;
+use App\Http\Controllers\StudentRoutineController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -54,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.update-user-role');
     Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.delete-user');
     
+    // Rutas de Gestión de Base de Datos (Backup y Restauración)
+    Route::get('/admin/database/export', [DatabaseController::class, 'export'])->name('admin.database.export');
+    Route::post('/admin/database/import', [DatabaseController::class, 'import'])->name('admin.database.import');
+    
     // Rutas de Gestión de Gimnasio - Máquinas
     Route::get('/admin/gym/machines', [MachineController::class, 'index'])->name('machines.index');
     Route::get('/admin/gym/machines/create', [MachineController::class, 'create'])->name('machines.create');
@@ -66,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/gym/exercises', [ExerciseController::class, 'index'])->name('exercises.index');
     Route::get('/admin/gym/exercises/create', [ExerciseController::class, 'create'])->name('exercises.create');
     Route::post('/admin/gym/exercises', [ExerciseController::class, 'store'])->name('exercises.store');
+    Route::get('/admin/gym/exercises/{exercise}', [ExerciseController::class, 'show'])->name('exercises.show');
     Route::get('/admin/gym/exercises/{exercise}/edit', [ExerciseController::class, 'edit'])->name('exercises.edit');
     Route::put('/admin/gym/exercises/{exercise}', [ExerciseController::class, 'update'])->name('exercises.update');
     Route::delete('/admin/gym/exercises/{exercise}', [ExerciseController::class, 'destroy'])->name('exercises.destroy');
@@ -85,4 +92,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/gym/rutinas/{rutinaAdmin}/edit', [RutinaAdminController::class, 'edit'])->name('rutinas.edit');
     Route::put('/admin/gym/rutinas/{rutinaAdmin}', [RutinaAdminController::class, 'update'])->name('rutinas.update');
     Route::delete('/admin/gym/rutinas/{rutinaAdmin}', [RutinaAdminController::class, 'destroy'])->name('rutinas.destroy');
+
+    // Rutas de estudiantes
+    Route::get('/student/routines', [StudentRoutineController::class, 'index'])->name('student.routines.index');
+    Route::get('/student/routines/create', [StudentRoutineController::class, 'create'])->name('student.routines.create');
+    Route::post('/student/routines', [StudentRoutineController::class, 'store'])->name('student.routines.store');
+    Route::get('/student/routines/{routine}', [StudentRoutineController::class, 'show'])->name('student.routines.show');
+    Route::get('/student/my-physical-info', [StudentRoutineController::class, 'myPhysicalInfo'])->name('student.my-physical-info');
 });

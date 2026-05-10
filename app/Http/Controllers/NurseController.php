@@ -8,15 +8,24 @@ use Illuminate\Http\Request;
 
 class NurseController extends Controller
 {
+    private function authorizeNurse()
+    {
+        if (! auth()->check() || auth()->user()->role !== 'enfermero') {
+            abort(403, 'Acceso denegado.');
+        }
+    }
+
     // Mostrar formulario para buscar estudiante
     public function searchStudentForm()
     {
+        $this->authorizeNurse();
         return view('nurse.search-student');
     }
     
     // Buscar estudiante por email
     public function searchStudent(Request $request)
     {
+        $this->authorizeNurse();
         $request->validate([
             'email' => 'required|email|ends_with:@ucundinamarca.edu.co',
         ]);
@@ -37,6 +46,7 @@ class NurseController extends Controller
     // Mostrar formulario de información física
     public function showPhysicalForm($email)
     {
+        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->first();
         
@@ -49,6 +59,7 @@ class NurseController extends Controller
     // Guardar/actualizar información física
     public function savePhysicalInfo(Request $request, $email)
     {
+        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         
         $validated = $request->validate([
@@ -74,6 +85,7 @@ class NurseController extends Controller
     // Ver información física de un estudiante
     public function viewStudentInfo($email)
     {
+        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->firstOrFail();
         
@@ -86,6 +98,7 @@ class NurseController extends Controller
     // Listar todos los estudiantes con información física registrada
     public function listStudents()
     {
+        $this->authorizeNurse();
         $physicalInfos = PhysicalInfo::with('user')
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
@@ -98,6 +111,7 @@ class NurseController extends Controller
     // Eliminar información física de un estudiante
     public function deletePhysicalInfo($email)
     {
+        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->firstOrFail();
         

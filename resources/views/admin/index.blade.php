@@ -474,6 +474,43 @@
             <div class="info-text">{{ $systemStartDate->diffForHumans() }}</div>
         </div>
         
+        <!-- Nueva Sección: Gestión de Base de Datos -->
+        <h2 style="margin-top: 2rem;">🛠️ Mantenimiento del Sistema</h2>
+        <div class="card" style="margin-bottom: 2rem; border-left: 5px solid #1B5E46;">
+            <div class="card-title">💾 Gestión de Base de Datos (Backup y Restauración)</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem;">
+                
+                <!-- Exportar -->
+                <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                    <div class="stat-label" style="margin-bottom: 0.5rem;">Copia de Seguridad</div>
+                    <p class="info-text" style="margin-bottom: 1rem;">Descarga un archivo .sql con toda la información actual para prevenir pérdida de datos.</p>
+                    <a href="{{ route('admin.database.export') }}" class="btn" style="background: #1B5E46; color: white; display: inline-flex; width: auto; padding: 0.8rem 1.5rem;">
+                        <span>📥 Descargar Respaldo</span>
+                    </a>
+                </div>
+
+                <!-- Importar -->
+                <div style="padding: 1rem; background: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2;">
+                    <div class="stat-label" style="margin-bottom: 0.5rem; color: #c53030;">Restaurar Sistema</div>
+                    <p class="info-text" style="margin-bottom: 1rem; color: #9b2c2c;"><strong>Atención:</strong> Subir un archivo reemplazará TODA la información actual del sistema.</p>
+                    
+                    <form action="{{ route('admin.database.import') }}" method="POST" enctype="multipart/form-data" id="restoreForm">
+                        @csrf
+                        <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                            <input type="file" name="backup_file" accept=".sql" required 
+                                   style="font-size: 12px; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; background: white;">
+                            <button type="submit" class="btn" 
+                                    style="background: #e53e3e; color: white; padding: 0.8rem;"
+                                    onclick="return confirm('¿ESTÁS ABSOLUTAMENTE SEGURO? Esta acción borrará los datos actuales y los reemplazará con los del archivo.')">
+                                <span>📤 Restaurar Base de Datos</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Gráficos -->
         <div class="grid-2">
             <!-- Distribución de roles -->

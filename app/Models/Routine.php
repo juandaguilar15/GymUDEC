@@ -16,32 +16,16 @@ class Routine extends Model
         'duration_weeks',
         'days_per_week',
         'description',
-        'user_id',
         'status',
     ];
 
     /**
-     * Relación: Una rutina pertenece a un usuario.
+     * Relación: Una rutina puede pertenecer a muchos usuarios.
      */
-    public function user()
+    public function users()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Relación: Una rutina puede tener muchos ejercicios seleccionados.
-     */
-    public function ejerciciosSeleccionados()
-    {
-        return $this->hasMany(EjercicioSeleccionado::class);
-    }
-
-    /**
-     * Relación: Una rutina puede tener muchas asignaciones de admin.
-     */
-    public function rutinaAdmin()
-    {
-        return $this->hasMany(RutinaAdmin::class);
+        return $this->belongsToMany(User::class, 'routine_user', 'id_rutina', 'id_usuario')
+            ->withTimestamps();
     }
 
     /**
@@ -50,5 +34,20 @@ class Routine extends Model
     public function trainingDays()
     {
         return $this->hasMany(RoutineTrainingDay::class)->orderBy('day_order');
+    }
+
+    /**
+     * Relación: Todos los ejercicios asignados a los días de esta rutina.
+     */
+    public function dayExercises()
+    {
+        return $this->hasManyThrough(
+            RoutineDayExercise::class,
+            RoutineTrainingDay::class,
+            'routine_id', // Foreign key on routine_training_days table...
+            'id_rutina_dias', // Foreign key on routine_day_exercise table...
+            'id',
+            'id'
+        );
     }
 }

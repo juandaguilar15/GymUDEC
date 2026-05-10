@@ -20,42 +20,142 @@
             min-height: 100vh;
         }
         
-        .navbar {
+        .page-shell {
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .topnav {
             background: white;
             padding: 1rem 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        
-        .navbar-logo {
+
+        .brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1B5E46;
-            text-decoration: none;
+            gap: 0.85rem;
         }
-        
-        .navbar-logo-icon {
-            width: 40px;
-            height: 40px;
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
             background: #1B5E46;
-            border-radius: 50%;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            font-size: 1.15rem;
         }
-        
-        .navbar-actions {
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1B5E46;
+        }
+
+        .brand-subtitle {
+            font-size: 0.95rem;
+            color: #6b7b6c;
+        }
+
+        .nav-menu {
             display: flex;
-            gap: 1rem;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
-        
+
+        .nav-link {
+            padding: 0.85rem 1rem;
+            border-radius: 999px;
+            background: #f4f7fb;
+            color: #2a7a5e;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: #eaf3ee;
+        }
+
+        .nav-link.active {
+            background: #1B5E46;
+            color: white;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-form .btn {
+            min-width: auto;
+            padding: 0.8rem 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            min-height: 100vh;
+            padding: 2rem 0 3rem;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            background: linear-gradient(135deg, #1B5E46 0%, #2a7a5e 100%);
+            border-radius: 18px;
+            padding: 2rem 2.5rem;
+            color: white;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: 2rem;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p {
+            margin: 0.75rem 0 0;
+            color: rgba(255,255,255,0.9);
+            max-width: 40rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: #f4f7fb;
+            border: 1px solid #d8e2da;
+            color: #1B5E46;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
         .btn {
             padding: 0.6rem 1.5rem;
             border: none;
@@ -69,37 +169,37 @@
             transition: all 0.3s;
             font-size: 14px;
         }
-        
+
         .btn-secondary {
             background: #e0e0e0;
             color: #333;
         }
-        
+
         .btn-secondary:hover {
             background: #d0d0d0;
         }
-        
+
         .btn-primary {
             background: #F8B803;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background: #e6a700;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 2rem;
         }
-        
+
         h1 {
             color: #1B5E46;
             font-size: 28px;
             margin-bottom: 1.5rem;
         }
-        
+
         .filter-section {
             background: white;
             padding: 1.5rem;
@@ -107,26 +207,26 @@
             margin-bottom: 2rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        
+
         .filter-form {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 1rem;
             align-items: end;
         }
-        
+
         .form-group {
             display: flex;
             flex-direction: column;
         }
-        
+
         label {
             font-weight: 600;
             color: #1B5E46;
             margin-bottom: 0.5rem;
             font-size: 14px;
         }
-        
+
         input[type="date"] {
             padding: 0.7rem;
             border: 2px solid #e0e0e0;
@@ -135,12 +235,12 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
-        
+
         input[type="date"]:focus {
             outline: none;
             border-color: #1B5E46;
         }
-        
+
         .empty-state {
             background: white;
             padding: 3rem;
@@ -148,19 +248,19 @@
             text-align: center;
             color: #999;
         }
-        
+
         .empty-icon {
             font-size: 48px;
             margin-bottom: 1rem;
         }
-        
+
         .statistics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
-        
+
         .stat-card {
             background: white;
             padding: 1.5rem;
@@ -168,20 +268,20 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-left: 4px solid #F8B803;
         }
-        
+
         .stat-value {
             font-size: 28px;
             font-weight: 700;
             color: #1B5E46;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-label {
             font-size: 12px;
             color: #999;
             text-transform: uppercase;
         }
-        
+
         .chart-container {
             background: white;
             padding: 1.5rem;
@@ -189,31 +289,31 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 2rem;
         }
-        
+
         .chart-title {
             font-size: 16px;
             font-weight: 600;
             color: #1B5E46;
             margin-bottom: 1rem;
         }
-        
+
         .chart-canvas {
             position: relative;
             height: 300px;
         }
-        
+
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
         }
-        
+
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
         }
-        
+
         .error-message {
             background: #f8d7da;
             color: #721c24;
@@ -222,17 +322,42 @@
             margin-bottom: 20px;
             border-left: 4px solid #f5c6cb;
         }
-        
+
         .export-btn {
             background: #1B5E46;
             color: white;
         }
-        
+
         .export-btn:hover {
             background: #2a7a5e;
         }
         
         @media (max-width: 1024px) {
+            .nav-menu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 14px 36px rgba(0,0,0,0.12);
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1rem 1.5rem;
+                display: none;
+            }
+
+            .nav-menu.show {
+                display: flex;
+            }
+
+            .main-content {
+                padding: 1rem 0 2rem;
+            }
+
+            .mobile-menu-toggle {
+                display: inline-flex;
+            }
+
             .filter-form {
                 grid-template-columns: 1fr 1fr;
             }
@@ -243,9 +368,13 @@
         }
         
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
+            .topnav {
+                padding: 1rem 1rem;
+            }
+            
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 1.5rem 1.25rem;
             }
             
             .container {
@@ -256,10 +385,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .statistics-grid {
-                grid-template-columns: 1fr;
-            }
-            
+            .statistics-grid,
             .grid-2,
             .grid-3 {
                 grid-template-columns: 1fr;
@@ -268,25 +394,66 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="{{ route('dashboard') }}" class="navbar-logo">
-            <div class="navbar-logo-icon">💪</div>
-            <span>GymUdec</span>
-        </a>
-        <div class="navbar-actions">
-            <a href="{{ route('nurse.search-student') }}" class="btn btn-secondary">← Volver</a>
-            <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                @csrf
-                <button type="submit" class="btn btn-secondary">Salir</button>
-            </form>
-        </div>
-    </nav>
+    <div class="page-shell">
+        <header class="topnav">
+            <div class="brand">
+                <div class="brand-icon">💪</div>
+                <div>
+                    <div class="brand-title">GymUdec</div>
+                    <div class="brand-subtitle">Panel de análisis y resultados</div>
+                </div>
+            </div>
 
-    <div class="container">
-        <h1>📊 Análisis de Información Física</h1>
-        
-        @if ($errors->any())
+            <button class="mobile-menu-toggle" onclick="toggleMenu()">☰</button>
+
+            <nav class="nav-menu" id="topNavMenu">
+                <a href="{{ route('dashboard') }}" class="nav-link">🏠 Dashboard</a>
+                <a href="{{ route('nurse.search-student') }}" class="nav-link">🔍 Buscar Estudiante</a>
+                <a href="{{ route('nurse.list-students') }}" class="nav-link">👥 Lista de Estudiantes</a>
+                <a href="{{ route('analytics.index') }}" class="nav-link active">📊 Estadísticas</a>
+                <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary">🚪 Salir</button>
+                </form>
+            </nav>
+        </header>
+
+        <div class="main-content">
+            <header class="topnav">
+                <div class="brand">
+                    <div class="brand-icon">💪</div>
+                    <div>
+                        <div class="brand-title">GymUdec</div>
+                        <div class="brand-subtitle">Panel de análisis y resultados</div>
+                    </div>
+                </div>
+
+                <button class="mobile-menu-toggle" onclick="toggleMenu()">☰</button>
+
+                <nav class="nav-menu" id="topNavMenu">
+                    <a href="{{ route('dashboard') }}" class="nav-link">🏠 Dashboard</a>
+                    <a href="{{ route('nurse.search-student') }}" class="nav-link">🔍 Buscar Estudiante</a>
+                    <a href="{{ route('nurse.list-students') }}" class="nav-link">👥 Lista de Estudiantes</a>
+                    <a href="{{ route('analytics.index') }}" class="nav-link active">📊 Estadísticas</a>
+                    <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary">🚪 Salir</button>
+                    </form>
+                </nav>
+            </header>
+
+            <div class="container">
+                <div class="hero">
+                    <div>
+                        <h1>📊 Análisis de Información Física</h1>
+                        <p>Resumen claro y moderno para entender mejor el estado físico de los estudiantes.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <a href="{{ route('analytics.export-csv', ['start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" class="btn export-btn">⬇️ Descargar CSV</a>
+                    </div>
+                </div>
+
+                @if ($errors->any())
             <div class="error-message">
                 {{ $errors->first() }}
             </div>
@@ -305,13 +472,6 @@
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">🔍 Filtrar Datos</button>
-                </div>
-                <div class="form-group">
-                    <form action="{{ route('analytics.export-csv') }}" method="GET" style="margin: 0;">
-                        <input type="hidden" name="start_date" value="{{ $startDate->format('Y-m-d') }}">
-                        <input type="hidden" name="end_date" value="{{ $endDate->format('Y-m-d') }}">
-                        <button type="submit" class="btn export-btn">⬇️ Descargar CSV</button>
-                    </form>
                 </div>
             </form>
         </div>
@@ -405,6 +565,22 @@
             </div>
         @endif
     </div>
+</div>
+</div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('topNavMenu');
+            menu.classList.toggle('show');
+        }
+
+        window.addEventListener('resize', function() {
+            const menu = document.getElementById('topNavMenu');
+            if (window.innerWidth > 1024) {
+                menu.classList.remove('show');
+            }
+        });
+    </script>
 
     <script>
         const colors = {

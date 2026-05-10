@@ -24,6 +24,7 @@ class PhysicalInfo extends Model
         'date_of_birth' => 'date',
         'height' => 'float',
         'weight' => 'float',
+        'age' => 'integer',
     ];
     
     // Relación con Usuario

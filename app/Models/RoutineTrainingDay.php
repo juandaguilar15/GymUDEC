@@ -23,11 +23,10 @@ class RoutineTrainingDay extends Model
     }
     
     /**
-     * Obtener ejercicios para este día
+     * Obtener ejercicios asignados para este día.
      */
-    public function ejercicios()
+    public function exercises()
     {
-        return $this->routine->ejerciciosSeleccionados()
-            ->where('day_name', $this->day_name);
+        return $this->hasMany(RoutineDayExercise::class, 'id_rutina_dias');
     }
 }

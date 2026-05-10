@@ -238,6 +238,11 @@
                 {{ session('success') }}
             </div>
         @endif
+        @if (session('error'))
+            <div style="background: #fdecea; border: 1px solid #f5c6cb; color: #b71c1c; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
+                {{ session('error') }}
+            </div>
+        @endif
         
         <div class="welcome-card">
             <h1 class="welcome-title">¡Bienvenido, {{ auth()->user()->name }}!</h1>
@@ -287,6 +292,9 @@
                 <a href="{{ route('nurse.search-student') }}" class="action-btn">
                     🔍 Buscar y Registrar Estudiante
                 </a>
+                <a href="{{ route('nurse.list-students') }}" class="action-btn">
+                    👥 Ver Estudiantes Registrados
+                </a>
                 <a href="{{ route('analytics.index') }}" class="action-btn">
                     📊 Análisis y Estadísticas
                 </a>
@@ -305,11 +313,27 @@
             <div class="role-actions">
                 <h2>📱 Mi Perfil Estudiante</h2>
                 <p style="color: #666; margin-bottom: 1.5rem;">
-                    Aquí encontrarás tu información y tu progreso en el gimnasio.
+                    Aquí puedes ver tus rutinas asignadas y crear nuevas rutinas si tu permiso es <strong>libre</strong>.
                 </p>
-                <button class="action-btn" disabled style="opacity: 0.6; cursor: not-allowed;">
-                    📊 Próximamente
-                </button>
+                @php
+                    $studentPermission = auth()->user()->physicalInfo?->permisos;
+                @endphp
+                @if ($studentPermission === 'libre')
+                    <a href="{{ route('student.routines.create') }}" class="action-btn">
+                        ➕ Crear Mi Rutina
+                    </a>
+                @endif
+                <a href="{{ route('student.routines.index') }}" class="action-btn">
+                    📋 Ver Mis Rutinas
+                </a>
+                <a href="{{ route('student.my-physical-info') }}" class="action-btn">
+                    📊 Mi Información Física
+                </a>
+                @if ($studentPermission === 'limitado')
+                    <p style="color: #1B5E46; margin-top: 1rem; font-weight: 600;">
+                        Actualmente tienes permiso <strong>limitado</strong>. Solo puedes ver la(s) rutina(s) asignada(s) por el administrador.
+                    </p>
+                @endif
             </div>
         @endif
     </div>

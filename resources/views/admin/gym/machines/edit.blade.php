@@ -237,7 +237,7 @@
         @endif
         
         <div class="form-container">
-            <form method="POST" action="{{ route('machines.update', $machine->id) }}">
+            <form method="POST" action="{{ route('machines.update', $machine->id) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 
@@ -257,10 +257,12 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="image_url">URL de la Imagen</label>
-                    <input type="url" id="image_url" name="image_url" value="{{ old('image_url', $machine->image_url) }}" placeholder="Ej: https://example.com/maquina.jpg">
+                    <label for="image_url">Cambiar Imagen de la Máquina</label>
+                    <input type="file" id="image_url" name="image_url" accept="image/*">
+                    <small style="color: #888; margin-top: 5px; display: block;">Sube una foto clara de la máquina (Máx. 2MB)</small>
                     @if ($machine->image_url)
                         <div class="image-preview">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Imagen actual:</p>
                             <img src="{{ $machine->image_url }}" alt="{{ $machine->name }}">
                         </div>
                     @endif

@@ -531,7 +531,7 @@
                 tab.textContent = dayLabel;
                 tab.onclick = (e) => {
                     e.preventDefault();
-                    switchDay(day);
+                    switchDay(day, e.target);
                 };
                 dayTabs.appendChild(tab);
                 
@@ -561,11 +561,13 @@
             updateDaySelector();
         }
         
-        function switchDay(day) {
+        function switchDay(day, tabElement) {
             document.querySelectorAll('.day-content').forEach(d => d.classList.remove('active'));
             document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`day-${day}`).classList.add('active');
-            event.target.classList.add('active');
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
         }
         
         function addExerciseToDay(day, event, existingEx = null) {
@@ -588,22 +590,34 @@
                 <div class="exercise-fields">
                     <div class="form-group">
                         <label style="margin-bottom: 4px; font-size: 13px;">Ejercicio</label>
-                        <select name="exercises[]" class="exercise-select" required onchange="storeDayForExercise('${uniqueId}', '${day}')">
-                            <option value="">-- Selecciona un ejercicio --</option>
+                        <select name="exercises[]" class="exercise-select" required onchange="onExerciseSelectionChange(this, '${uniqueId}')">
+                            <option value="" data-format="series_reps">-- Selecciona un ejercicio --</option>
                             @foreach ($exercises as $exercise)
-                                <option value="{{ $exercise->id }}" ${existingEx && existingEx.exercise_id === {{ $exercise->id }} ? 'selected' : ''}>{{ $exercise->name }} ({{ $exercise->type }})</option>
+                                <option value="{{ $exercise->id }}" data-format="{{ $exercise->exercise_format ?? 'series_reps' }}" ${existingEx && existingEx.exercise_id === {{ $exercise->id }} ? 'selected' : ''}>{{ $exercise->name }} ({{ $exercise->type }})</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group series-fields">
                         <label style="margin-bottom: 4px; font-size: 13px;">Series</label>
                         <input type="number" name="sets[]" placeholder="3" min="1" step="1"
                                value="${existingEx ? (existingEx.sets || '') : ''}">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group series-fields">
                         <label style="margin-bottom: 4px; font-size: 13px;">Repeticiones</label>
                         <input type="number" name="reps[]" placeholder="10" min="1" step="1"
                                value="${existingEx ? (existingEx.reps || '') : ''}">
+                    </div>
+                    <div class="form-group duration-fields" style="display: none;">
+                        <label style="margin-bottom: 4px; font-size: 13px;">Duración</label>
+                        <input type="number" name="durations[]" placeholder="30" min="1" step="1"
+                               value="${existingEx ? (existingEx.duration || '') : ''}">
+                    </div>
+                    <div class="form-group duration-fields" style="display: none;">
+                        <label style="margin-bottom: 4px; font-size: 13px;">Unidad</label>
+                        <select name="duration_units[]">
+                            <option value="segundos" ${existingEx && existingEx.duration_unit === 'segundos' ? 'selected' : ''}>Segundos</option>
+                            <option value="minutos" ${existingEx && existingEx.duration_unit === 'minutos' ? 'selected' : ''}>Minutos</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -611,13 +625,13 @@
                     <div class="form-group">
                         <label style="margin-bottom: 4px; font-size: 13px;">Descanso</label>
                         <input type="number" name="descansos[]" placeholder="30" min="0" step="1"
-                               value="${existingEx ? (existingEx.descanso || '') : ''}">
+                               value="${existingEx ? (existingEx.descansos || '') : ''}">
                     </div>
                     <div class="form-group">
                         <label style="margin-bottom: 4px; font-size: 13px;">Unidad</label>
                         <select name="descansos_unidad[]">
-                            <option value="segundos" ${existingEx && existingEx.descanso_unidad === 'segundos' ? 'selected' : ''}>Segundos</option>
-                            <option value="minutos" ${existingEx && existingEx.descanso_unidad === 'minutos' ? 'selected' : ''}>Minutos</option>
+                            <option value="segundos" ${existingEx && existingEx.descansos_unidad === 'segundos' ? 'selected' : ''}>Segundos</option>
+                            <option value="minutos" ${existingEx && existingEx.descansos_unidad === 'minutos' ? 'selected' : ''}>Minutos</option>
                         </select>
                     </div>
                 </div>
@@ -626,7 +640,39 @@
             `;
             
             exercisesContainer.appendChild(exerciseItem);
+            updateExerciseFieldsByFormat(uniqueId);
             updateRemoveButtons();
+        }
+        
+        function onExerciseSelectionChange(selectElement, uniqueId) {
+            updateExerciseFieldsByFormat(uniqueId);
+        }
+
+        function getSelectedExerciseFormat(selectElement) {
+            const option = selectElement.selectedOptions[0];
+            return option?.dataset?.format || 'series_reps';
+        }
+
+        function updateExerciseFieldsByFormat(uniqueId) {
+            const container = document.getElementById(`exercise-${uniqueId}`);
+            if (!container) {
+                return;
+            }
+            const select = container.querySelector('.exercise-select');
+            if (!select) {
+                return;
+            }
+            const format = getSelectedExerciseFormat(select);
+            const seriesFields = container.querySelectorAll('.series-fields');
+            const durationFields = container.querySelectorAll('.duration-fields');
+
+            if (format === 'duration') {
+                seriesFields.forEach(field => field.style.display = 'none');
+                durationFields.forEach(field => field.style.display = 'block');
+            } else {
+                seriesFields.forEach(field => field.style.display = 'block');
+                durationFields.forEach(field => field.style.display = 'none');
+            }
         }
         
         function removeExercise(uniqueId, event) {
@@ -657,6 +703,14 @@
         
         function storeDayForExercise(uniqueId, day) {
             // El día ya está guardado en el hidden input
+            const container = document.getElementById(`exercise-${uniqueId}`);
+            if (!container) {
+                return;
+            }
+            const select = container.querySelector('.exercise-select');
+            if (select) {
+                updateExerciseFieldsByFormat(uniqueId);
+            }
         }
         
         // Inicializar

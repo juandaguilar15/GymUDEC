@@ -231,7 +231,7 @@
         @endif
         
         <div class="form-container">
-            <form method="POST" action="{{ route('exercises.update', $exercise->id) }}">
+            <form method="POST" action="{{ route('exercises.update', $exercise->id) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 
@@ -268,20 +268,39 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="exercise_format">Formato de Ejecución *</label>
+                    <select id="exercise_format" name="exercise_format" required>
+                        <option value="series_reps" {{ old('exercise_format', $exercise->exercise_format) === 'series_reps' ? 'selected' : '' }}>Series y Repeticiones</option>
+                        <option value="duration" {{ old('exercise_format', $exercise->exercise_format) === 'duration' ? 'selected' : '' }}>Por Duración (Tiempo)</option>
+                    </select>
+                </div>
                 
                 <div class="form-group">
-                    <label for="image_url">URL de la Imagen</label>
-                    <input type="url" id="image_url" name="image_url" value="{{ old('image_url', $exercise->image_url) }}" placeholder="Ej: https://example.com/ejercicio.jpg">
+                    <label for="image_url">Cambiar Imagen (Poster/Miniatura)</label>
+                    <input type="file" id="image_url" name="image_url" accept="image/*">
                     @if ($exercise->image_url)
                         <div class="image-preview">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Imagen actual:</p>
                             <img src="{{ $exercise->image_url }}" alt="{{ $exercise->name }}">
                         </div>
                     @endif
                 </div>
                 
                 <div class="form-group">
-                    <label for="media_url">URL del Contenido Multimedia (Video, Tutorial)</label>
-                    <input type="url" id="media_url" name="media_url" value="{{ old('media_url', $exercise->media_url) }}" placeholder="Ej: https://example.com/video.mp4">
+                    <label for="media_url">Cambiar Video Demostrativo</label>
+                    <input type="file" id="media_url" name="media_url" accept="video/*">
+                    <small style="color: #888;">Formatos aceptados: MP4, MOV. Máx: 20MB</small>
+                    @if ($exercise->media_url)
+                        <div class="image-preview" style="margin-top: 10px;">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Video actual:</p>
+                            <video width="250" controls>
+                                <source src="{{ $exercise->media_url }}" type="video/mp4">
+                                Tu navegador no soporta el elemento de video.
+                            </video>
+                        </div>
+                    @endif
                 </div>
                 
                 <div class="form-buttons">

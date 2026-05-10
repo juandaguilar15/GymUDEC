@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Exercise extends Model
 {
@@ -17,7 +18,26 @@ class Exercise extends Model
         'machine_id',
         'image_url',
         'media_url',
+        'exercise_format',
     ];
+
+    /**
+     * Accesor para la imagen del ejercicio.
+     */
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) return null;
+        return filter_var($value, FILTER_VALIDATE_URL) ? $value : Storage::url($value);
+    }
+
+    /**
+     * Accesor para el contenido multimedia (video).
+     */
+    public function getMediaUrlAttribute($value)
+    {
+        if (!$value) return null;
+        return filter_var($value, FILTER_VALIDATE_URL) ? $value : Storage::url($value);
+    }
 
     /**
      * Relación: Un ejercicio pertenece a una máquina.
@@ -28,10 +48,10 @@ class Exercise extends Model
     }
 
     /**
-     * Relación: Un ejercicio puede estar en muchos ejercicios seleccionados.
+     * Relación: Un ejercicio está asignado a muchos días de rutina.
      */
-    public function ejerciciosSeleccionados()
+    public function routineDayExercises()
     {
-        return $this->hasMany(EjercicioSeleccionado::class);
+        return $this->hasMany(RoutineDayExercise::class, 'id_ejercicio');
     }
 }

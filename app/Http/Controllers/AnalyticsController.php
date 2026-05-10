@@ -8,9 +8,17 @@ use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
+    private function authorizeAdmin()
+    {
+        if (! auth()->check() || !in_array(auth()->user()->role, ['administrador', 'enfermero'])) {
+            abort(403, 'Acceso denegado.');
+        }
+    }
+
     // Mostrar página de análisis
     public function index(Request $request)
     {
+        $this->authorizeAdmin();
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonths(3);
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
         
@@ -153,6 +161,7 @@ class AnalyticsController extends Controller
     // Exportar datos a CSV
     public function exportCsv(Request $request)
     {
+        $this->authorizeAdmin();
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonths(3);
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
         
