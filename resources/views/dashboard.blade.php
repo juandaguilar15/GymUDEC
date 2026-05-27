@@ -1,341 +1,219 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard - GymUdec</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <style>
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
-            background: #f5f5f5;
-        }
-        
-        .navbar {
-            background: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .navbar-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1B5E46;
-            text-decoration: none;
-        }
-        
-        .navbar-logo-icon {
-            width: 40px;
-            height: 40px;
-            background: #1B5E46;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-        
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            color: #1B5E46;
-            margin: 0;
-        }
-        
-        .user-role {
-            font-size: 0.85rem;
-            color: #666;
-            margin: 0;
-        }
-        
-        .btn-logout {
-            padding: 0.6rem 1.5rem;
-            background: #F8B803;
-            color: #1B5E46;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-logout:hover {
-            background: #E8A803;
-            transform: translateY(-2px);
-        }
-        
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        
-        .welcome-card {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid #1B5E46;
-        }
-        
-        .welcome-title {
-            color: #1B5E46;
-            margin: 0 0 1rem 0;
-            font-size: 1.8rem;
-        }
-        
-        .welcome-text {
-            color: #666;
-            line-height: 1.6;
-            margin: 0;
-        }
-        
-        .user-details {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .detail-item {
-            margin-bottom: 1.5rem;
-        }
-        
-        .detail-label {
-            color: #1B5E46;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-        
-        .detail-value {
-            color: #333;
-            font-size: 1.1rem;
-            padding: 0.5rem;
-            background: #f9f9f9;
-            border-radius: 4px;
-            border-left: 3px solid #F8B803;
-            padding-left: 1rem;
-        }
-        
-        .role-actions {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid #F8B803;
-        }
-        
-        .role-actions h2 {
-            color: #1B5E46;
-            margin-top: 0;
-        }
-        
-        .action-btn {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background: #F8B803;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
-            margin-right: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .action-btn:hover {
-            background: #e6a700;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(248, 184, 3, 0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .navbar-user {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .dashboard-container {
-                padding: 0 1rem;
-            }
-            
-            .welcome-card {
-                padding: 1.5rem;
-            }
-            
-            .user-details {
-                padding: 1.5rem;
-            }
-            
-            .action-btn {
-                display: block;
-                margin-bottom: 0.8rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="{{ route('home') }}" class="navbar-logo">
-            <div class="navbar-logo-icon">💪</div>
-            <span>GymUdec</span>
-        </a>
-        <div class="navbar-user">
-            <div class="user-info">
-                <p class="user-name">{{ auth()->user()->name }}</p>
-                <p class="user-role">Rol: {{ ucfirst(auth()->user()->role) }}</p>
-            </div>
-            <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
-                @csrf
-                <button type="submit" class="btn-logout">Cerrar Sesión</button>
-            </form>
-        </div>
-    </nav>
+@php(
+    $layout = auth()->user()->role === 'administrador'
+        ? 'layouts.admin'
+        : (auth()->user()->role === 'enfermero' ? 'layouts.nurse' : 'layouts.student')
+)
+@extends($layout)
 
-    <!-- Dashboard Content -->
-    <div class="dashboard-container">
-        @if (session('success'))
-            <div style="background: #e8f5e9; border: 1px solid #4caf50; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div style="background: #fdecea; border: 1px solid #f5c6cb; color: #b71c1c; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
-                {{ session('error') }}
-            </div>
-        @endif
-        
-        <div class="welcome-card">
-            <h1 class="welcome-title">¡Bienvenido, {{ auth()->user()->name }}!</h1>
-            <p class="welcome-text">
-                @if(auth()->user()->role === 'enfermero')
-                    Bienvenido al módulo de enfermería de GymUdec. Aquí podrás gestionar y 
-                    registrar la información física de los estudiantes para optimizar su 
-                    seguimiento y recomendaciones personalizadas.
+@section('title', 'Dashboard - GymUdec')
+@section('page-title', 'Panel de Control')
+@section('page-subtitle')
+    @if(auth()->user()->role === 'administrador')
+        Unifica tu experiencia en el mismo diseño administrativo y mantén las acciones claras desde el primer ingreso.
+    @elseif(auth()->user()->role === 'enfermero')
+        Gestiona la enfermería con acciones directas para estudiantes, fichas médicas y datos relevantes.
+    @else
+        Revisa tu rutina, avisos y ficha física con un diseño limpio y accesible.
+    @endif
+@endsection
+
+@section('content')
+    <div class="grid gap-6 xl:grid-cols-[2fr_1fr] mb-8">
+        <section class="admin-card">
+            <p class="admin-section-label">Bienvenida</p>
+            <h2 class="text-3xl font-bold text-emerald-950 mb-4">¡Hola, {{ auth()->user()->name }}!</h2>
+            <p class="text-slate-600 mb-6">
+                @if(auth()->user()->role === 'administrador')
+                    Este es tu panel administrativo. Desde aquí puedes gestionar el sistema con claridad. Haz primero lo más importante y luego revisa los detalles.
+                @elseif(auth()->user()->role === 'enfermero')
+                    Este es tu panel de enfermería con una vista ordenada. Empieza por buscar estudiantes o revisar indicadores importantes.
                 @else
-                    Tu cuenta en GymUdec ha sido creada exitosamente. Aquí podrás gestionar tus rutinas, 
-                    ver tu progreso y mantener un seguimiento inteligente de tu desempeño en el gimnasio.
+                    Este es tu panel de estudiante con el estilo administrativo. Revisa tu rutina, consulta avisos y mantén tu ficha física al día.
                 @endif
             </p>
-        </div>
 
-        <div class="user-details">
-            <h2 style="color: #1B5E46; margin-top: 0;">Información de Tu Cuenta</h2>
-            
-            <div class="detail-item">
-                <div class="detail-label">Nombre Completo:</div>
-                <div class="detail-value">{{ auth()->user()->name }}</div>
+            @if(auth()->user()->role === 'estudiante' )
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <a href="{{ route('student.routines.index') }}" class="action-card group">
+                        <div class="dashboard-action-card-icon">🏋️</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Mis Rutinas</h3>
+                            <p class="dashboard-action-card-text">Ve tus rutinas activas y asignadas, sin saturar la pantalla con opciones extra.</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('student.notices.index') }}" class="action-card group">
+                        <div class="dashboard-action-card-icon">📝</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Avisos</h3>
+                            <p class="dashboard-action-card-text">Revisa los mensajes importantes y regresa al dashboard cuando lo necesites.</p>
+                        </div>
+                    </a>
+                    @if(!empty($canCreate) && $canCreate)
+                        <a href="{{ route('student.routines.create') }}" class="action-card group">
+                            <div class="dashboard-action-card-icon">✍️</div>
+                            <div>
+                                <h3 class="dashboard-action-card-title">Crear Rutina</h3>
+                                <p class="dashboard-action-card-text">Abre la vista para crear tu rutina con la misma experiencia administrativa.</p>
+                            </div>
+                        </a>
+                    @endif
+                </div>
+            @endif
+
+            @if(auth()->user()->role === 'enfermero')
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <a href="{{ route('nurse.search-student') }}" class="action-card group">
+                        <div class="dashboard-action-card-icon">🔎</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Buscar estudiante</h3>
+                            <p class="dashboard-action-card-text">Encuentra rápidamente la ficha del estudiante por nombre o correo.</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.list-students') }}" class="action-card group">
+                        <div class="dashboard-action-card-icon">👥</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Lista de estudiantes</h3>
+                            <p class="dashboard-action-card-text">Revisa todos los registros de estudiantes y administra sus fichas físicas.</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('analytics.index') }}" class="action-card group">
+                        <div class="dashboard-action-card-icon">📊</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Indicadores</h3>
+                            <p class="dashboard-action-card-text">Consulta métricas clave que apoyan el seguimiento enfermero.</p>
+                        </div>
+                    </a>
+                </div>
+            @endif
+
+            @if(auth()->user()->role === 'administrador')
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="admin-menu-card">
+                        <div class="dashboard-action-card-icon">👥</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Usuarios</h3>
+                            <p class="dashboard-action-card-text">Gestiona el listado de usuarios desde el módulo correspondiente.</p>
+                        </div>
+                    </div>
+                    <div class="admin-menu-card">
+                        <div class="dashboard-action-card-icon">📋</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Rutinas</h3>
+                            <p class="dashboard-action-card-text">Accede al área de rutinas sin botones dedicados en este panel.</p>
+                        </div>
+                    </div>
+                    <div class="admin-menu-card">
+                        <div class="dashboard-action-card-icon">📢</div>
+                        <div>
+                            <h3 class="dashboard-action-card-title">Avisos</h3>
+                            <p class="dashboard-action-card-text">Observa el estado de los avisos y ve al módulo si deseas editarlos.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </section>
+
+        <aside class="admin-card">
+            <p class="admin-section-label">Tu perfil</p>
+            <h3 class="text-xl font-semibold text-emerald-950 mb-3">Resumen rápido</h3>
+            <p class="text-slate-600 mb-6">Accede a tu información personal y a las acciones más relevantes desde un solo panel.</p>
+
+            <div class="grid gap-4 mb-6">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500 font-semibold">Nombre</p>
+                    <p class="text-base font-medium text-emerald-950">{{ auth()->user()->name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500 font-semibold">Correo</p>
+                    <p class="text-base font-medium text-emerald-950">{{ auth()->user()->email }}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500 font-semibold">Rol</p>
+                    <p class="text-base font-medium text-emerald-950">{{ ucfirst(auth()->user()->role) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500 font-semibold">Miembro desde</p>
+                    <p class="text-base font-medium text-emerald-950">{{ auth()->user()->created_at->format('d/m/Y') }}</p>
+                </div>
             </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Correo Electrónico:</div>
-                <div class="detail-value">{{ auth()->user()->email }}</div>
+
+            <div class="grid gap-3">
+                @if(auth()->user()->role === 'estudiante')
+                    <p class="text-sm text-slate-600">Accede a tu ficha física desde el módulo de estudiante.</p>
+                @elseif(auth()->user()->role === 'enfermero')
+                    <p class="text-sm text-slate-600">Utiliza las opciones de enfermería para buscar y gestionar estudiantes.</p>
+                @elseif(auth()->user()->role === 'administrador')
+                    <p class="text-sm text-slate-600">Este panel muestra funciones de administración sin botones de acceso directo.</p>
+                @endif
             </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Rol en el Sistema:</div>
-                <div class="detail-value">{{ ucfirst(auth()->user()->role) }}</div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Miembro desde:</div>
-                <div class="detail-value">{{ auth()->user()->created_at->format('d/m/Y H:i') }}</div>
+        </aside>
+    </div>
+
+    @if(auth()->user()->role === 'estudiante')
+        <div class="admin-card mb-8">
+            <h2 class="text-xl font-semibold text-emerald-950 mb-4">Indicadores rápidos</h2>
+            <div class="admin-stat-grid">
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Rutinas actuales</p>
+                    <div class="dashboard-stat-value">{{ $routineCount ?? $user->routines()->count() }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Avisos activos</p>
+                    <div class="dashboard-stat-value">{{ $notices->count() }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Ficha física</p>
+                    <div class="dashboard-stat-value">{{ optional($user->physicalInfo)->exists ? 'Registrada' : 'Pendiente' }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Permiso</p>
+                    <div class="dashboard-stat-value">{{ ucfirst($permisos ?? 'desconocido') }}</div>
+                </div>
             </div>
         </div>
-        
-        @if(auth()->user()->role === 'enfermero')
-            <div class="role-actions">
-                <h2>👨‍⚕️ Gestión de Estudiantes</h2>
-                <p style="color: #666; margin-bottom: 1.5rem;">
-                    Accede a las herramientas de enfermería para gestionar la información 
-                    física y médica de los estudiantes del gimnasio.
-                </p>
-                <a href="{{ route('nurse.search-student') }}" class="action-btn">
-                    🔍 Buscar y Registrar Estudiante
-                </a>
-                <a href="{{ route('nurse.list-students') }}" class="action-btn">
-                    👥 Ver Estudiantes Registrados
-                </a>
-                <a href="{{ route('analytics.index') }}" class="action-btn">
-                    📊 Análisis y Estadísticas
-                </a>
+    @elseif(auth()->user()->role === 'administrador')
+        <div class="admin-card mb-8">
+            <h2 class="text-xl font-semibold text-emerald-950 mb-4">Indicadores clave</h2>
+            <div class="admin-stat-grid">
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Usuarios totales</p>
+                    <div class="dashboard-stat-value">{{ $stats['totalUsers'] }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Estudiantes</p>
+                    <div class="dashboard-stat-value">{{ $stats['totalStudents'] }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Máquinas</p>
+                    <div class="dashboard-stat-value">{{ $stats['totalMachines'] }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Ejercicios</p>
+                    <div class="dashboard-stat-value">{{ $stats['totalExercises'] }}</div>
+                </div>
             </div>
-        @elseif(auth()->user()->role === 'administrador')
-            <div class="role-actions">
-                <h2>⚙️ Panel Administrativo</h2>
-                <p style="color: #666; margin-bottom: 1.5rem;">
-                    Accede a las herramientas administrativas para gestionar el sistema.
-                </p>
-                <a href="{{ route('admin.index') }}" class="action-btn">
-                    ⚙️ Panel de Administración
-                </a>
+        </div>
+    @elseif(auth()->user()->role === 'enfermero')
+        <div class="admin-card mb-8">
+            <h2 class="text-xl font-semibold text-emerald-950 mb-4">Indicadores enfermería</h2>
+            <div class="admin-stat-grid">
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Estudiantes</p>
+                    <div class="dashboard-stat-value">{{ $studentCount ?? $stats['totalStudents'] ?? 'N/A' }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Fichas físicas</p>
+                    <div class="dashboard-stat-value">{{ $stats['totalPhysicalInfos'] ?? 'N/A' }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Avisos activos</p>
+                    <div class="dashboard-stat-value">{{ $notices->count() }}</div>
+                </div>
+                <div class="dashboard-stat-card">
+                    <p class="dashboard-stat-label">Fichas actualizadas hoy</p>
+                    <div class="dashboard-stat-value">{{ $stats['updatedToday'] ?? 'N/A' }}</div>
+                </div>
             </div>
-        @else
-            <div class="role-actions">
-                <h2>📱 Mi Perfil Estudiante</h2>
-                <p style="color: #666; margin-bottom: 1.5rem;">
-                    Aquí puedes ver tus rutinas asignadas y crear nuevas rutinas si tu permiso es <strong>libre</strong>.
-                </p>
-                @php
-                    $studentPermission = auth()->user()->physicalInfo?->permisos;
-                @endphp
-                @if ($studentPermission === 'libre')
-                    <a href="{{ route('student.routines.create') }}" class="action-btn">
-                        ➕ Crear Mi Rutina
-                    </a>
-                @endif
-                <a href="{{ route('student.routines.index') }}" class="action-btn">
-                    📋 Ver Mis Rutinas
-                </a>
-                <a href="{{ route('student.my-physical-info') }}" class="action-btn">
-                    📊 Mi Información Física
-                </a>
-                @if ($studentPermission === 'limitado')
-                    <p style="color: #1B5E46; margin-top: 1rem; font-weight: 600;">
-                        Actualmente tienes permiso <strong>limitado</strong>. Solo puedes ver la(s) rutina(s) asignada(s) por el administrador.
-                    </p>
-                @endif
-            </div>
-        @endif
-    </div>
-</body>
-</html>
+        </div>
+    @endif
+@endsection

@@ -92,7 +92,7 @@
     <nav class="navbar">
         <div style="font-weight: 700; font-size: 1.4rem; color: #1B5E46;">GymUdec <span style="color: #2196f3;">Salud</span></div>
         <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="btn-logout">Cerrar Sesión</button></form>
-        <a href="{{ route('admin.dashboard') }}" class="navbar-logo">
+        <a href="{{ route('admin.index') }}" class="navbar-logo">
             <div class="navbar-logo-icon">💪</div>
             <span>GymUdec Admin</span>
         </a>
@@ -168,7 +168,7 @@
         <div class="section-card">
             <div class="section-header">
                 <h2 style="font-size: 18px; color: #1B5E46;">👥 Gestión de Usuarios</h2>
-                <form action="{{ route('admin.dashboard') }}" method="GET" class="search-form">
+                <form action="{{ route('admin.index') }}" method="GET" class="search-form">
                     <input type="text" name="search" class="search-input" placeholder="Buscar por nombre o email..." value="{{ $search ?? '' }}">
                     <button type="submit" class="btn btn-primary">🔍</button>
                 </form>

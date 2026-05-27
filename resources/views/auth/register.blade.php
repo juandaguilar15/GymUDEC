@@ -220,6 +220,16 @@
                 @error('password') <span style="color: #d32f2f; font-size: 0.85rem;">{{ $message }}</span> @enderror
             </div>
             
+            <div class="form-group" style="font-size:0.9rem;">
+                <div style="margin-bottom:0.4rem; font-weight:600; color:#333;">Requisitos de la contraseña</div>
+                <ul id="password-checklist" style="list-style:none; padding:0; margin:0; color:#666;">
+                    <li id="pc-length">❌ Mínimo 8 caracteres</li>
+                    <li id="pc-upper">❌ Una letra mayúscula</li>
+                    <li id="pc-lower">❌ Una letra minúscula</li>
+                    <li id="pc-number">❌ Un número</li>
+                </ul>
+            </div>
+            
             <div class="form-group">
                 <label for="password_confirmation">Confirmar Contraseña</label>
                 <input type="password" id="password_confirmation" name="password_confirmation" placeholder="••••••••" required>
@@ -249,4 +259,27 @@ function togglePasswordRegister(fieldId) {
         toggleBtn.textContent = '👁️';
     }
 }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const pw = document.getElementById('password');
+    const pcLength = document.getElementById('pc-length');
+    const pcUpper = document.getElementById('pc-upper');
+    const pcLower = document.getElementById('pc-lower');
+    const pcNumber = document.getElementById('pc-number');
+
+    function checkPassword() {
+        const val = pw.value || '';
+        pcLength.textContent = (val.length >= 8 ? '✅' : '❌') + ' Mínimo 8 caracteres';
+        pcUpper.textContent = (/[A-Z]/.test(val) ? '✅' : '❌') + ' Una letra mayúscula';
+        pcLower.textContent = (/[a-z]/.test(val) ? '✅' : '❌') + ' Una letra minúscula';
+        pcNumber.textContent = (/\d/.test(val) ? '✅' : '❌') + ' Un número';
+    }
+
+    if (pw) {
+        pw.addEventListener('input', checkPassword);
+        checkPassword();
+    }
+});
 </script>

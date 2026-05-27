@@ -7,12 +7,22 @@ use App\Models\Exercise;
 use App\Models\RoutineDayExercise;
 use App\Models\RoutineTrainingDay;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class RoutineController extends Controller
+class RoutineController extends Controller implements HasMiddleware
 {
     /**
-     * Verifica que el usuario sea administrador.
+     * Configurar middleware para el controlador
+     */
+    public static function middleware(): array
+    {
+        return ['auth', 'role:administrador'];
+    }
+
+    /**
+     * Verifica que el usuario actual sea administrador.
      */
     private function authorizeAdmin()
     {
@@ -22,19 +32,67 @@ class RoutineController extends Controller
     }
 
     /**
+     * Normaliza nombres de días recibidos en la petición para aceptar variantes sin tildes.
+     */
+    private function normalizeDayInputs(Request $request)
+    {
+        $map = [
+            'lunes' => 'lunes',
+            'martes' => 'martes',
+            'miercoles' => 'miércoles',
+            'mierc' => 'miércoles',
+            'miércoles' => 'miércoles',
+            'jueves' => 'jueves',
+            'viernes' => 'viernes',
+            'sabado' => 'sábado',
+            'sábado' => 'sábado',
+            'domingo' => 'domingo',
+        ];
+
+        $fields = ['training_days', 'exercise_days'];
+
+        foreach ($fields as $field) {
+            if (! $request->has($field)) {
+                continue;
+            }
+
+            $items = $request->input($field);
+            if (! is_array($items)) {
+                continue;
+            }
+
+            $normalized = array_map(function ($val) use ($map) {
+                $val = trim(mb_strtolower((string) $val));
+                // reemplazar tildes y caracteres especiales a forma base
+                $plain = strtr($val, [
+                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+                    'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u',
+                    'ñ' => 'n', 'Ñ' => 'n'
+                ]);
+
+                return $map[$plain] ?? ($map[$val] ?? $val);
+            }, $items);
+
+            $request->merge([$field => $normalized]);
+        }
+    }
+
+    /**
      * Mostrar lista de rutinas creadas
      */
     public function index(Request $request)
     {
-        $this->authorizeAdmin();
-
         $search = $request->input('search');
-        $query = Routine::query();
+        $query = Routine::whereHas('users', function ($query) {
+            $query->where('role', 'administrador');
+        });
 
         if ($search) {
-            $query->where('name', 'like', "%$search%")
-                  ->orWhere('objective', 'like', "%$search%")
-                  ->orWhere('level', 'like', "%$search%");
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%$search%")
+                      ->orWhere('objective', 'like', "%$search%")
+                      ->orWhere('level', 'like', "%$search%");
+            });
         }
 
         $routines = $query->paginate(15);
@@ -75,6 +133,7 @@ class RoutineController extends Controller
     public function store(Request $request)
     {
         $this->authorizeAdmin();
+        $this->normalizeDayInputs($request);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:routines',
@@ -137,43 +196,48 @@ class RoutineController extends Controller
             throw ValidationException::withMessages($errors);
         }
 
-        $routine = Routine::create([
-            'name' => $validated['name'],
-            'objective' => $validated['objective'],
-            'level' => $validated['level'],
-            'duration_weeks' => $validated['duration_weeks'],
-            'days_per_week' => $validated['days_per_week'],
-            'description' => $validated['description'],
-            'status' => $validated['status'],
-        ]);
-
-        if (auth()->check()) {
-            $routine->users()->sync([auth()->id()]);
-        }
-
-        foreach ($validated['training_days'] as $index => $day) {
-            $routineDay = $routine->trainingDays()->create([
-                'day_name' => $day,
-                'day_order' => $index + 1,
+        return DB::transaction(function () use ($validated, $exerciseFormats) {
+            $routine = Routine::create([
+                'name' => $validated['name'],
+                'objective' => $validated['objective'],
+                'level' => $validated['level'],
+                'duration_weeks' => $validated['duration_weeks'],
+                'days_per_week' => $validated['days_per_week'],
+                'description' => $validated['description'],
+                'status' => $validated['status'],
             ]);
 
-            foreach ($validated['exercises'] as $exIndex => $exerciseId) {
-                if (($validated['exercise_days'][$exIndex] ?? null) === $day) {
-                    $format = $exerciseFormats[$exerciseId] ?? 'series_reps';
+            if (auth()->check()) {
+                $routine->users()->sync([auth()->id()]);
+            }
 
-                    RoutineDayExercise::create([
-                        'id_rutina_dias' => $routineDay->id,
-                        'id_ejercicio' => $exerciseId,
-                        'sets' => $format === 'series_reps' ? ($validated['sets'][$exIndex] ?? null) : null,
-                        'reps' => $format === 'series_reps' ? ($validated['reps'][$exIndex] ?? null) : null,
-                        'duration' => $format === 'duration' ? ($validated['durations'][$exIndex] ?? null) : null,
-                        'duration_unit' => $format === 'duration' ? ($validated['duration_units'][$exIndex] ?? null) : null,
-                        'rests' => $validated['descansos'][$exIndex] ?? null,
-                        'rests_unit' => $validated['descansos_unidad'][$exIndex] ?? 'segundos',
-                    ]);
+            foreach ($validated['training_days'] as $index => $day) {
+                $routineDay = $routine->trainingDays()->create([
+                    'day_name' => $day,
+                    'day_order' => $index + 1,
+                ]);
+
+                foreach ($validated['exercises'] as $exIndex => $exerciseId) {
+                    if (($validated['exercise_days'][$exIndex] ?? null) === $day) {
+                        $format = $exerciseFormats[$exerciseId] ?? 'series_reps';
+
+                        RoutineDayExercise::create([
+                            'id_rutina_dias' => $routineDay->id,
+                            'id_ejercicio' => $exerciseId,
+                            'sets' => $format === 'series_reps' ? ($validated['sets'][$exIndex] ?? null) : null,
+                            'reps' => $format === 'series_reps' ? ($validated['reps'][$exIndex] ?? null) : null,
+                            'duration' => $format === 'duration' ? ($validated['durations'][$exIndex] ?? null) : null,
+                            'duration_unit' => $format === 'duration' ? ($validated['duration_units'][$exIndex] ?? null) : null,
+                            'rests' => $validated['descansos'][$exIndex] ?? null,
+                            'rests_unit' => $validated['descansos_unidad'][$exIndex] ?? 'segundos',
+                        ]);
+                    }
                 }
             }
-        }
+
+            return redirect()->route('routines.index')
+                ->with('success', "Rutina '{$validated['name']}' creada exitosamente.");
+        });
 
         return redirect()->route('routines.index')
             ->with('success', "Rutina '{$validated['name']}' creada exitosamente con " . count($validated['exercises']) . " ejercicio(s).");
@@ -230,6 +294,7 @@ class RoutineController extends Controller
     public function update(Request $request, $id)
     {
         $this->authorizeAdmin();
+        $this->normalizeDayInputs($request);
 
         $routine = Routine::findOrFail($id);
 

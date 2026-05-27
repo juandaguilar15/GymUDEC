@@ -189,16 +189,31 @@
         
         <form method="POST" action="{{ route('login') }}">
             @csrf
-            
+            @if (session('status'))
+                <div style="background: #e6ffed; border: 1px solid #c6f6d5; color: #065f46; padding: 0.9rem; border-radius: 6px; margin-bottom: 1rem;">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div style="background: #fee; border: 1px solid #fcc; color: #c33; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    @foreach ($errors->all() as $error)
+                        <p style="margin: 0.2rem 0;">• {{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
-                <input type="email" id="email" name="email" placeholder="tu@ucundinamarca.edu.co" required>
+                <input type="email" id="email" name="email" placeholder="tu@ucundinamarca.edu.co" value="{{ old('email') }}" required>
+                @error('email') <span style="color: #d32f2f; font-size: 0.85rem;">{{ $message }}</span> @enderror
             </div>
             
             <div class="form-group">
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
                 <button type="button" class="password-toggle" onclick="togglePasswordLogin()">👁️</button>
+                @error('password') <span style="color: #d32f2f; font-size: 0.85rem; display:block; margin-top:0.4rem;">{{ $message }}</span> @enderror
                 <div style="text-align: right; margin-top: 0.5rem;">
                     <a href="{{ route('password.request') }}" style="color: #1B5E46; font-size: 0.85rem; text-decoration: none; font-weight: 500;">
                         ¿Olvidaste tu contraseña?

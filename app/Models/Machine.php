@@ -43,12 +43,4 @@ class Machine extends Model
     {
         return $this->hasMany(Exercise::class);
     }
-
-    /**
-     * Relación: Una máquina tiene muchas rutinas.
-     */
-    public function routines()
-    {
-        return $this->hasMany(Routine::class);
-    }
 }

@@ -48,10 +48,10 @@ class RutinaAdminController extends Controller
     public function create()
     {
         $this->authorizeAdmin();
-        $routines = Routine::where('status', 'publica')
-            ->whereHas('users', function ($query) {
+        $routines = Routine::whereHas('users', function ($query) {
                 $query->where('role', 'administrador');
             })
+            ->with('users')
             ->get();
 
         $students = User::where('role', 'estudiante')->get();
@@ -74,13 +74,19 @@ class RutinaAdminController extends Controller
         ]);
 
         // Obtener datos de la rutina
-        $routine = Routine::findOrFail($validated['routine_id']);
-        if (! $routine->users()->where('role', 'administrador')->exists()) {
-            return back()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
+        $routine = Routine::with('users')->findOrFail($validated['routine_id']);
+        if (! $routine->isAdminCreated()) {
+            return back()->withInput()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
         }
-        
+
         // Obtener datos del estudiante
         $student = User::where('email', $validated['student_email'])->firstOrFail();
+
+        if (RutinaAdmin::where('routine_id', $routine->id)
+            ->where('student_email', $student->email)
+            ->exists()) {
+            return back()->withInput()->withErrors(['student_email' => 'Esta rutina ya está asignada a ese estudiante.']);
+        }
 
         // Crear asignación
         RutinaAdmin::create([
@@ -103,7 +109,11 @@ class RutinaAdminController extends Controller
     {
         $this->authorizeAdmin();
         $rutinaAdmin = RutinaAdmin::findOrFail($id);
-        $routines = Routine::where('status', 'publica')->get();
+        $routines = Routine::whereHas('users', function ($query) {
+                $query->where('role', 'administrador');
+            })
+            ->with('users')
+            ->get();
         $students = User::where('role', 'estudiante')->get();
 
         return view('admin.gym.rutinas.edit', [
@@ -127,15 +137,24 @@ class RutinaAdminController extends Controller
         ]);
 
         // Obtener datos de la rutina
-        $routine = Routine::findOrFail($validated['routine_id']);
+        $routine = Routine::with('users')->findOrFail($validated['routine_id']);
         
         // Obtener datos del estudiante
         $student = User::where('email', $validated['student_email'])->firstOrFail();
 
-        // Actualizar asignación
-        if (! $routine->users()->where('role', 'administrador')->exists()) {
-            return back()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
+        if (! $routine->isAdminCreated()) {
+            return back()->withInput()->withErrors(['routine_id' => 'Solo se pueden asignar rutinas creadas por administradores.']);
         }
+
+        if (RutinaAdmin::where('routine_id', $routine->id)
+            ->where('student_email', $student->email)
+            ->where('id', '!=', $rutinaAdmin->id)
+            ->exists()) {
+            return back()->withInput()->withErrors(['student_email' => 'Esta rutina ya está asignada a ese estudiante.']);
+        }
+
+        $oldRoutineId = $rutinaAdmin->routine_id;
+        $oldStudentEmail = $rutinaAdmin->student_email;
 
         $rutinaAdmin->update([
             'routine_id' => $routine->id,
@@ -145,6 +164,21 @@ class RutinaAdminController extends Controller
         ]);
 
         $routine->users()->syncWithoutDetaching([$student->id]);
+
+        if ($oldRoutineId !== $routine->id || $oldStudentEmail !== $student->email) {
+            $oldRoutine = Routine::find($oldRoutineId);
+            $oldStudent = User::where('email', $oldStudentEmail)->first();
+
+            if ($oldRoutine && $oldStudent) {
+                $stillAssigned = RutinaAdmin::where('routine_id', $oldRoutine->id)
+                    ->where('student_email', $oldStudent->email)
+                    ->exists();
+
+                if (! $stillAssigned) {
+                    $oldRoutine->users()->detach($oldStudent->id);
+                }
+            }
+        }
 
         return redirect()->route('rutinas.index')
             ->with('success', "Asignación de rutina actualizada exitosamente.");
@@ -159,8 +193,22 @@ class RutinaAdminController extends Controller
         $rutinaAdmin = RutinaAdmin::findOrFail($id);
         $rutinaName = $rutinaAdmin->routine_name;
         $studentName = $rutinaAdmin->student_name;
+        $oldRoutineId = $rutinaAdmin->routine_id;
+        $oldStudentEmail = $rutinaAdmin->student_email;
 
         $rutinaAdmin->delete();
+
+        $oldRoutine = Routine::find($oldRoutineId);
+        $oldStudent = User::where('email', $oldStudentEmail)->first();
+        if ($oldRoutine && $oldStudent) {
+            $stillAssigned = RutinaAdmin::where('routine_id', $oldRoutine->id)
+                ->where('student_email', $oldStudent->email)
+                ->exists();
+
+            if (! $stillAssigned) {
+                $oldRoutine->users()->detach($oldStudent->id);
+            }
+        }
 
         return redirect()->route('rutinas.index')
             ->with('success', "Asignación de rutina '{$rutinaName}' a {$studentName} eliminada exitosamente.");

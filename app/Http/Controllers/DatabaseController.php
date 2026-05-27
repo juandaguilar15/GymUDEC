@@ -32,14 +32,19 @@ class DatabaseController extends Controller
         $username = $dbConfig['username'];
         $password = $dbConfig['password'];
         $database = $dbConfig['database'];
+        $port = $dbConfig['port'] ?? '3306';
 
         // Comando para exportar la base de datos
-        // Usamos escapeshellarg por seguridad para evitar inyección de comandos
+        // --no-tablespaces: Crucial para evitar archivos vacíos por falta de privilegios PROCESS.
+        // --routines y --triggers: Asegura que se respalden funciones y disparadores.
+        // --single-transaction: Permite respaldar sin bloquear las tablas.
+        // 2>&1: Redirige errores a la salida para que no descargue un archivo vacío si algo falla.
         $command = sprintf(
-            'mysqldump --user=%s --password=%s --host=%s %s',
+            'mysqldump --user=%s --password=%s --host=%s --port=%s --routines --triggers --single-transaction --no-tablespaces %s 2>&1',
             escapeshellarg($username),
             escapeshellarg($password),
             escapeshellarg($host),
+            escapeshellarg($port),
             escapeshellarg($database)
         );
 
@@ -78,14 +83,16 @@ class DatabaseController extends Controller
         $username = $dbConfig['username'];
         $password = $dbConfig['password'];
         $database = $dbConfig['database'];
+        $port = $dbConfig['port'] ?? '3306';
 
         // Comando para importar la base de datos
-        // < es el operador de redirección para inyectar el archivo al comando mysql
+        // Redirigimos stderr a stdout (2>&1) para capturar errores detallados
         $command = sprintf(
-            'mysql --user=%s --password=%s --host=%s %s < %s',
+            'mysql --user=%s --password=%s --host=%s --port=%s %s < %s 2>&1',
             escapeshellarg($username),
             escapeshellarg($password),
             escapeshellarg($host),
+            escapeshellarg($port),
             escapeshellarg($database),
             escapeshellarg($path)
         );
@@ -98,7 +105,8 @@ class DatabaseController extends Controller
             exec($command, $output, $returnVar);
 
             if ($returnVar !== 0) {
-                return back()->with('error', 'Hubo un error al restaurar la base de datos. Verifica el archivo.');
+                $errorDetails = implode(' ', $output);
+                return back()->with('error', 'Error al restaurar: ' . $errorDetails);
             }
 
             // Importante: Si se restauró la tabla de usuarios, el admin podría necesitar volver a loguearse

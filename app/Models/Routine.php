@@ -50,4 +50,24 @@ class Routine extends Model
             'id'
         );
     }
+
+    /**
+     * Determina si la rutina fue creada o asignada por un administrador.
+     */
+    public function isAdminCreated(): bool
+    {
+        if ($this->relationLoaded('users')) {
+            return $this->users->contains('role', 'administrador');
+        }
+
+        return $this->users()->where('role', 'administrador')->exists();
+    }
+
+    /**
+     * Obtiene la etiqueta del creador de la rutina.
+     */
+    public function getCreatorLabelAttribute(): string
+    {
+        return $this->isAdminCreated() ? 'Administrador' : 'Estudiante';
+    }
 }

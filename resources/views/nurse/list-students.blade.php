@@ -11,23 +11,32 @@
         <div class="success-message">{{ session('success') }}</div>
     @endif
 
+    <div class="page-messaging">
+        <strong>Atención:</strong> utiliza los botones de acción para ver el perfil, editar datos físicos o eliminar el registro. Los colores ayudan a identificar cada paso.
+    </div>
+
+    <div class="breadcrumb-actions">
+        <p class="text-slate-600 max-w-2xl">Aquí tienes el listado de estudiantes registrados. Revisa permisos y condiciones desde la tabla, luego selecciona la acción deseada.</p>
+        <a href="{{ route('nurse.search-student') }}" class="btn-primary">➕ Buscar / Registrar estudiante</a>
+    </div>
+
     @if ($physicalInfos->count() > 0)
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #F8B803;">
-                <div style="font-size: 28px; font-weight: 700; color: #1B5E46;">{{ $physicalInfos->total() }}</div>
-                <div style="font-size: 12px; color: #999; margin-top: 0.5rem;">Total de estudiantes registrados</div>
+        <div class="grid gap-4 mb-8 xl:grid-cols-4 sm:grid-cols-2">
+            <div class="rounded-3xl bg-white border border-emerald-100 shadow-sm p-6">
+                <div class="text-3xl font-bold text-emerald-950">{{ $physicalInfos->total() }}</div>
+                <div class="mt-2 text-sm text-slate-500">Total de estudiantes registrados</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #F8B803;">
-                <div style="font-size: 28px; font-weight: 700; color: #1B5E46;">{{ $physicalInfos->where('permisos', 'limitado')->count() }}</div>
-                <div style="font-size: 12px; color: #999; margin-top: 0.5rem;">Con permisos limitados</div>
+            <div class="rounded-3xl bg-white border border-emerald-100 shadow-sm p-6">
+                <div class="text-3xl font-bold text-emerald-950">{{ $physicalInfos->where('permisos', 'limitado')->count() }}</div>
+                <div class="mt-2 text-sm text-slate-500">Con permisos limitados</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #F8B803;">
-                <div style="font-size: 28px; font-weight: 700; color: #1B5E46;">{{ $physicalInfos->whereNotNull('condition')->count() }}</div>
-                <div style="font-size: 12px; color: #999; margin-top: 0.5rem;">Con condiciones médicas</div>
+            <div class="rounded-3xl bg-white border border-emerald-100 shadow-sm p-6">
+                <div class="text-3xl font-bold text-emerald-950">{{ $physicalInfos->whereNotNull('condition')->count() }}</div>
+                <div class="mt-2 text-sm text-slate-500">Con condiciones médicas</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #F8B803;">
-                <div style="font-size: 28px; font-weight: 700; color: #1B5E46;">{{ round($physicalInfos->avg('weight'), 1) }} kg</div>
-                <div style="font-size: 12px; color: #999; margin-top: 0.5rem;">Peso promedio</div>
+            <div class="rounded-3xl bg-white border border-emerald-100 shadow-sm p-6">
+                <div class="text-3xl font-bold text-emerald-950">{{ round($physicalInfos->avg('weight'), 1) }} kg</div>
+                <div class="mt-2 text-sm text-slate-500">Peso promedio</div>
             </div>
         </div>
 
@@ -43,7 +52,7 @@
                         <th>♂️ Género</th>
                         <th>🩺 Permisos</th>
                         <th>⚕️ Condición</th>
-                        <th>🔄 Última Actualización</th>
+                        <th>🔄 Actualizado</th>
                         <th>⚙️ Acciones</th>
                     </tr>
                 </thead>
@@ -58,27 +67,27 @@
                             <td>{{ ucfirst($info->gender) }}</td>
                             <td>
                                 @if($info->permisos === 'libre')
-                                    <span style="color: #28a745;">✅ Libre</span>
+                                    <span class="status-badge status-badge--success">✅ Libre</span>
                                 @else
-                                    <span style="color: #dc3545;">⚠️ Limitado</span>
+                                    <span class="status-badge status-badge--warning">⚠️ Limitado</span>
                                 @endif
                             </td>
                             <td>
                                 @if($info->condition)
-                                    <span style="color: #dc3545;" title="{{ $info->condition }}">⚕️ Sí</span>
+                                    <span class="status-badge status-badge--danger" title="{{ $info->condition }}">⚕️ {{ $info->condition }}</span>
                                 @else
-                                    <span style="color: #28a745;">✅ No</span>
+                                    <span class="status-badge status-badge--success">✅ Sin condiciones</span>
                                 @endif
                             </td>
                             <td>{{ $info->updated_at->format('d/m/Y H:i') }}</td>
                             <td>
-                                <div class="actions">
-                                    <a href="{{ route('nurse.view-info', ['email' => $info->email]) }}" class="action-link">👁️ Ver</a>
-                                    <a href="{{ route('nurse.physical-form', ['email' => $info->email]) }}" class="action-link">✏️ Editar</a>
-                                    <form action="{{ route('nurse.delete-info', ['email' => $info->email]) }}" method="POST" class="delete-form" onsubmit="return confirm('¿Está seguro que desea eliminar la información física de {{ $info->user->name }}?');">
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{{ route('nurse.view-info', ['email' => $info->email]) }}" class="btn-warning">👁️ Ver</a>
+                                    <a href="{{ route('nurse.physical-form', ['email' => $info->email]) }}" class="btn-primary">✏️ Editar</a>
+                                    <form action="{{ route('nurse.delete-info', ['email' => $info->email]) }}" method="POST" class="m-0">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="delete-btn">🗑️ Eliminar</button>
+                                        <button type="submit" class="btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar la información física de este estudiante? Esta acción no se puede deshacer.')">🗑️ Eliminar</button>
                                     </form>
                                 </div>
                             </td>
@@ -88,21 +97,16 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if ($physicalInfos->hasPages())
-            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; padding: 1rem; flex-wrap: wrap;">
+            <div class="flex flex-wrap justify-center gap-2 mt-8 p-4">
                 {{ $physicalInfos->links() }}
             </div>
         @endif
     @else
-        <div class="table-container">
-            <div style="text-align: center; padding: 3rem 2rem; color: #999;">
-                <div style="font-size: 48px; margin-bottom: 1rem;">📭</div>
-                <p>No hay estudiantes registrados aún.</p>
-                <a href="{{ route('nurse.search-student') }}" class="btn btn-primary" style="margin-top: 1rem;">
-                    🔍 Buscar y Registrar Estudiante
-                </a>
-            </div>
+        <div class="page-card text-center">
+            <div class="text-6xl mb-4">📭</div>
+            <p class="text-slate-600">No hay estudiantes registrados aún.</p>
+            <a href="{{ route('nurse.search-student') }}" class="btn-primary mt-5 inline-flex">🔍 Buscar y Registrar Estudiante</a>
         </div>
     @endif
 @endsection

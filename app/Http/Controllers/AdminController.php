@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\PhysicalInfo;
+use App\Models\Notice;
+use App\Models\Machine;
+use App\Models\Exercise;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -20,14 +23,21 @@ class AdminController extends Controller
     public function index()
     {
         $this->authorizeAdmin();
-        // Estadísticas generales
-        $totalUsers = User::count();
-        $totalAdmins = User::where('role', 'administrador')->count();
-        $totalEstudiantes = User::where('role', 'estudiante')->count();
-        $totalEnfermeros = User::where('role', 'enfermero')->count();
-        $totalPhysicalInfo = PhysicalInfo::count();
-        $usersActiveToday = User::whereDate('updated_at', Carbon::today())->count();
-        $systemStartDate = User::oldest('created_at')->first()?->created_at ?? now();
+
+        $stats = [
+            'totalUsers' => User::count(),
+            'totalAdmins' => User::where('role', 'administrador')->count(),
+            'totalStudents' => User::where('role', 'estudiante')->count(),
+            'totalNurses' => User::where('role', 'enfermero')->count(),
+            'totalPhysicalInfos' => PhysicalInfo::count(),
+            'totalMachines' => Machine::count(),
+            'totalExercises' => Exercise::count(),
+            'activeToday' => User::whereDate('updated_at', Carbon::today())->count(),
+            'systemSince' => User::oldest('created_at')->first()?->created_at->format('d/m/Y') ?? now()->format('d/m/Y'),
+        ];
+        
+        // Obtener los avisos para la vista
+        $notices = Notice::with('author')->latest()->paginate(10);
         
         // Últimos usuarios registrados
         $recentUsers = User::latest('created_at')->take(5)->get();
@@ -37,26 +47,21 @@ class AdminController extends Controller
         
         // Distribución de roles
         $roleDistribution = [
-            'estudiante' => $totalEstudiantes,
-            'enfermero' => $totalEnfermeros,
-            'administrador' => $totalAdmins,
+            'estudiante' => $stats['totalStudents'],
+            'enfermero' => $stats['totalNurses'],
+            'administrador' => $stats['totalAdmins'],
         ];
         
         // Registros de info física por mes (últimos 6 meses)
         $physicalInfoByMonth = $this->getPhysicalInfoByMonth();
         
-        return view('admin.index', [
-            'totalUsers' => $totalUsers,
-            'totalAdmins' => $totalAdmins,
-            'totalEstudiantes' => $totalEstudiantes,
-            'totalEnfermeros' => $totalEnfermeros,
-            'totalPhysicalInfo' => $totalPhysicalInfo,
-            'usersActiveToday' => $usersActiveToday,
-            'systemStartDate' => $systemStartDate,
+        return view('admin.dashboard', [
+            'stats' => $stats,
             'recentUsers' => $recentUsers,
             'recentPhysicalInfo' => $recentPhysicalInfo,
             'roleDistribution' => $roleDistribution,
             'physicalInfoByMonth' => $physicalInfoByMonth,
+            'notices' => $notices,
         ]);
     }
     
@@ -83,6 +88,7 @@ class AdminController extends Controller
                 'endDate' => $endDate,
                 'statistics' => null,
                 'isEmpty' => true,
+                'physicalInfos' => collect(),
             ]);
         }
         
@@ -98,59 +104,7 @@ class AdminController extends Controller
         ]);
     }
     
-    // Listar usuarios con búsqueda y paginación
-    public function listUsers(Request $request)
-    {
-        $this->authorizeAdmin();
-        $search = $request->input('search');
-        
-        $query = User::query();
-        
-        if ($search) {
-            $query->where('name', 'like', "%$search%")
-                  ->orWhere('email', 'like', "%$search%");
-        }
-        
-        $users = $query->paginate(15);
-        
-        return view('admin.users', [
-            'users' => $users,
-            'search' => $search,
-        ]);
-    }
-    
-    // Cambiar rol de usuario
-    public function updateUserRole(Request $request, $id)
-    {
-        $this->authorizeAdmin();
-        $user = User::findOrFail($id);
-        
-        $validated = $request->validate([
-            'role' => 'required|in:estudiante,administrador,enfermero',
-        ]);
-        
-        $oldRole = $user->role;
-        $user->update($validated);
-        
-        return back()->with('success', "Rol de {$user->name} actualizado de {$oldRole} a {$validated['role']}.");
-    }
-    
-    // Eliminar usuario
-    public function deleteUser($id)
-    {
-        $this->authorizeAdmin();
-        $user = User::findOrFail($id);
-        $userName = $user->name;
-        
-        // Eliminar información física asociada
-        PhysicalInfo::where('email', $user->email)->delete();
-        
-        $user->delete();
-        
-        return back()->with('success', "Usuario {$userName} y su información física han sido eliminados.");
-    }
-    
-    // Calcular estadísticas generales
+    // Calcular estadísticas generales de información física
     private function calculateStatistics($physicalInfos)
     {
         $count = $physicalInfos->count();
@@ -210,6 +164,9 @@ class AdminController extends Controller
             '40+' => $physicalInfos->where('age', '>=', 41)->count(),
         ];
         
+        // Tendencia de pesos (últimos 30 días)
+        $weightTrend = $this->getWeightTrend($physicalInfos);
+        
         return [
             'count' => $count,
             'avgAge' => round($avgAge, 2),
@@ -228,7 +185,97 @@ class AdminController extends Controller
             'ageByGender' => $ageByGender,
             'imcCategories' => $imcCategories,
             'ageRanges' => $ageRanges,
+            'weightTrend' => $weightTrend,
         ];
+    }
+    
+    // Obtener tendencia de peso (últimos 30 días)
+    private function getWeightTrend($physicalInfos)
+    {
+        $trend = [];
+        
+        for ($i = 30; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->toDateString();
+            $avgWeight = $physicalInfos
+                ->filter(fn($info) => $info->updated_at->toDateString() === $date)
+                ->avg('weight');
+            
+            $trend[] = [
+                'date' => Carbon::parse($date)->format('d/m'),
+                'weight' => $avgWeight ? round($avgWeight, 2) : null,
+            ];
+        }
+        
+        return $trend;
+    }
+    
+    // Listar usuarios con búsqueda y paginación
+    public function listUsers(Request $request)
+    {
+        $this->authorizeAdmin();
+        $search = $request->input('search');
+        $role = $request->input('role');
+        
+        $query = User::query();
+        
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%");
+            });
+        }
+        
+        if ($role && in_array($role, ['estudiante', 'enfermero', 'administrador'])) {
+            $query->where('role', $role);
+        }
+        
+        $users = $query->paginate(15)->withQueryString();
+        
+        return view('admin.users', [
+            'users' => $users,
+            'search' => $search,
+            'role' => $role,
+        ]);
+    }
+    
+    // Cambiar rol de usuario
+    public function updateUserRole(Request $request, $id)
+    {
+        $this->authorizeAdmin();
+        $user = User::findOrFail($id);
+
+        if (auth()->id() === $user->id) {
+            return back()->withErrors(['role' => 'No puedes cambiar tu propio rol desde este panel.']);
+        }
+        
+        $validated = $request->validate([
+            'role' => 'required|in:estudiante,administrador,enfermero',
+        ]);
+        
+        $oldRole = $user->role;
+        $user->update($validated);
+        
+        return back()->with('success', "Rol de {$user->name} actualizado de {$oldRole} a {$validated['role']}.");
+    }
+    
+    // Eliminar usuario
+    public function deleteUser($id)
+    {
+        $this->authorizeAdmin();
+        $user = User::findOrFail($id);
+        
+        if (auth()->id() === $user->id) {
+            return back()->withErrors(['delete' => 'No puedes eliminar tu propia cuenta desde este panel.']);
+        }
+
+        $userName = $user->name;
+        
+        // Eliminar información física asociada
+        PhysicalInfo::where('email', $user->email)->delete();
+        
+        $user->delete();
+        
+        return back()->with('success', "Usuario {$userName} y su información física han sido eliminados.");
     }
     
     // Obtener registros de info física por mes

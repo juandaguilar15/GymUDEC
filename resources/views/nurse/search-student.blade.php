@@ -22,20 +22,22 @@
     @endif
 
     <div class="page-card">
-        <h2>Buscar Estudiante</h2>
-        <p>Introduce el correo institucional del estudiante para encontrar su perfil y continuar con el seguimiento.</p>
+        <h2 class="text-emerald-900 text-2xl font-semibold mb-4">🔍 Iniciar Evaluación</h2>
+        <p class="text-slate-600 mb-6">Introduce el correo institucional del estudiante para encontrar su perfil y continuar con el seguimiento.</p>
 
         <form action="{{ route('nurse.search') }}" method="POST">
             @csrf
 
             <div class="form-group">
                 <label for="email">Correo del Estudiante</label>
-                <input type="email" id="email" name="email" placeholder="estudiante@ucundinamarca.edu.co" required>
+                <input type="email" id="email" name="email" placeholder="estudiante@ucundinamarca.edu.co" value="{{ old('email') }}" required>
                 <p class="info-text">Ingresa el correo institucional del estudiante.</p>
             </div>
 
-            <button type="submit" class="btn btn-primary">🔍 Buscar Estudiante</button>
-            <a href="{{ route('nurse.list-students') }}" class="btn btn-dark" style="width:100%; margin-top: 12px; justify-content:center;">👥 Ver Listado de Estudiantes</a>
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="btn-primary">🔍 Buscar Estudiante</button>
+                <a href="{{ route('nurse.list-students') }}" class="btn-tertiary">👥 Ver Listado</a>
+            </div>
         </form>
     </div>
 @endsection

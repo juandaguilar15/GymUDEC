@@ -1,249 +1,211 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Asignación - GymUdec</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1B5E46 0%, #2a7a5e 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #1B5E46;
-            font-size: 24px;
-            margin-bottom: 25px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            font-weight: 600;
-            color: #1B5E46;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        select,
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        select:focus,
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            outline: none;
-            border-color: #1B5E46;
-            box-shadow: 0 0 0 3px rgba(27, 94, 70, 0.1);
-        }
-        
-        .errors {
-            margin-bottom: 20px;
-        }
-        
-        .errors ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .errors li {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 8px;
-            border-left: 4px solid #f5c6cb;
-            font-size: 14px;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        
-        .submit-btn {
-            flex: 1;
-            padding: 12px;
-            background: #F8B803;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        
-        .submit-btn:hover {
-            background: #e6a700;
-        }
-        
-        .back-btn {
-            flex: 1;
-            padding: 12px;
-            background: #e0e0e0;
-            color: #333;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .back-btn:hover {
-            background: #d0d0d0;
-        }
-        
-        .delete-btn {
-            flex: 1;
-            padding: 12px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        
-        .delete-btn:hover {
-            background: #c0392b;
-        }
-        
-        .info-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .required {
-            color: #e74c3c;
-        }
-        
-        .button-group-with-delete {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        
-        .button-row {
-            display: flex;
-            gap: 10px;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .button-group-with-delete {
-                margin-top: 20px;
-            }
-            
-            .button-row {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>✏️ Editar Asignación de Rutina</h1>
-        
-        @if ($errors->any())
-            <div class="errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-        
-        <form action="{{ route('rutinas.update', $rutinaAdmin->id) }}" method="POST">
+@extends('layouts.admin')
+
+@section('title', 'Editar Asignación - GymUdec')
+@section('page-title', '✏️ Editar Asignación')
+@section('page-subtitle', 'Actualiza la asignación de rutina al estudiante.')
+@section('page-actions')
+    <a href="{{ route('rutinas.index') }}" class="btn-tertiary">← Volver al listado</a>
+@endsection
+
+@push('head')
+<style>
+    .select-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .select-table th,
+    .select-table td {
+        padding: 0.85rem 1rem;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+    }
+    .select-table th {
+        background: #ecfdf5;
+        color: #065f46;
+        font-weight: 700;
+    }
+    .select-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    .selected-row {
+        background: #d1fae5 !important;
+    }
+    .select-btn {
+        border-radius: 1rem;
+        background: #047857;
+        color: #ffffff;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+    .select-btn:hover {
+        background: #065f46;
+    }
+    .selected-info {
+        border-radius: 1.5rem;
+        border: 1px solid #d1fae5;
+        background: #ecfdf5;
+        padding: 1rem;
+        color: #334155;
+        margin-bottom: 1rem;
+    }
+</style>
+@endpush
+
+@section('content')
+    @if (session('error'))
+        <div class="errors">
+            <ul><li>{{ session('error') }}</li></ul>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="errors">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="page-card space-y-6">
+        <form action="{{ route('rutinas.update', $rutinaAdmin->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
-            
-            <div class="form-group">
-                <label for="routine_id">Selecciona Rutina <span class="required">*</span></label>
-                <select id="routine_id" name="routine_id" required>
-                    <option value="">-- Selecciona una rutina --</option>
-                    @foreach ($routines as $routine)
-                        <option value="{{ $routine->id }}" {{ $rutinaAdmin->routine_id == $routine->id ? 'selected' : '' }}>
-                            {{ $routine->name }} ({{ ucfirst($routine->objective) }}) - {{ $routine->level }}
-                        </option>
-                    @endforeach
-                </select>
-                <p class="info-text">Selecciona la rutina que deseas asignar</p>
-            </div>
-            
-            <div class="form-group">
-                <label for="student_email">Selecciona Estudiante <span class="required">*</span></label>
-                <select id="student_email" name="student_email" required>
-                    <option value="">-- Selecciona un estudiante --</option>
-                    @foreach ($students as $student)
-                        <option value="{{ $student->email }}" {{ $rutinaAdmin->student_email == $student->email ? 'selected' : '' }}>
-                            {{ $student->name }} ({{ $student->email }})
-                        </option>
-                    @endforeach
-                </select>
-                <p class="info-text">Selecciona el estudiante al que deseas asignar la rutina</p>
-            </div>
-            
-            <div class="button-group-with-delete">
-                <div class="button-row">
-                    <button type="submit" class="submit-btn">✅ Actualizar Asignación</button>
-                    <a href="{{ route('rutinas.index') }}" class="back-btn">← Volver</a>
+            <input type="hidden" id="routine_id" name="routine_id" value="{{ old('routine_id', $rutinaAdmin->routine_id) }}" />
+            <input type="hidden" id="student_email" name="student_email" value="{{ old('student_email', $rutinaAdmin->student_email) }}" />
+
+            <div>
+                <h2 class="text-lg font-semibold text-emerald-950 mb-3">Rutina seleccionada</h2>
+                <div class="selected-info" id="selectedRoutineInfo">
+                    <strong>Rutina seleccionada:</strong> {{ $rutinaAdmin->routine_name }}
                 </div>
-                
-                <form action="{{ route('rutinas.destroy', $rutinaAdmin->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar esta asignación?');">
+                <p class="info-text">Filtra por nombre y selecciona otra rutina si deseas cambiarla.</p>
+
+                <input type="text" id="routineSearch" class="form-group" placeholder="Buscar rutina por nombre..." aria-label="Buscar rutina por nombre" />
+                <table class="select-table" id="routineTable">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Objetivo</th>
+                            <th>Nivel</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($routines as $routine)
+                            <tr data-name="{{ strtolower($routine->name) }}" data-id="{{ $routine->id }}">
+                                <td>{{ $routine->name }}</td>
+                                <td>{{ ucfirst($routine->objective) }}</td>
+                                <td>{{ $routine->level }}</td>
+                                <td><button type="button" class="select-btn" onclick="selectRoutine({{ $routine->id }}, '{{ addslashes($routine->name) }}', '{{ addslashes(ucfirst($routine->objective)) }}', '{{ $routine->level }}', this)">Seleccionar</button></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-emerald-950 mb-3">Estudiante seleccionado</h2>
+                <div class="selected-info" id="selectedStudentInfo">
+                    <strong>Estudiante seleccionado:</strong> {{ $rutinaAdmin->student_name }} — {{ $rutinaAdmin->student_email }}
+                </div>
+                <p class="info-text">Filtra por nombre o correo para seleccionar otro estudiante.</p>
+
+                <input type="text" id="studentSearch" class="form-group" placeholder="Buscar estudiante por nombre o correo..." aria-label="Buscar estudiante" />
+                <table class="select-table" id="studentTable">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($students as $student)
+                            <tr data-name="{{ strtolower($student->name) }}" data-email="{{ strtolower($student->email) }}">
+                                <td>{{ $student->name }}</td>
+                                <td>{{ $student->email }}</td>
+                                <td><button type="button" class="select-btn" onclick="selectStudent('{{ addslashes($student->email) }}', '{{ addslashes($student->name) }}', this)">Seleccionar</button></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+                <a href="{{ route('rutinas.index') }}" class="btn-tertiary">Cancelar</a>
+                <button type="submit" class="btn-primary">Actualizar Asignación</button>
+                <form action="{{ route('rutinas.destroy', $rutinaAdmin->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar esta asignación?');" class="m-0">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="delete-btn">🗑️ Eliminar Asignación</button>
+                    <button type="submit" class="btn-danger">Eliminar Asignación</button>
                 </form>
             </div>
         </form>
     </div>
-</body>
-</html>
+@endsection
+
+@push('scripts')
+<script>
+    const routineSearch = document.getElementById('routineSearch');
+    const routineTable = document.getElementById('routineTable');
+    const selectedRoutineInfo = document.getElementById('selectedRoutineInfo');
+    const routineInput = document.getElementById('routine_id');
+
+    const studentSearch = document.getElementById('studentSearch');
+    const studentTable = document.getElementById('studentTable');
+    const selectedStudentInfo = document.getElementById('selectedStudentInfo');
+    const studentInput = document.getElementById('student_email');
+
+    routineSearch.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        Array.from(routineTable.querySelectorAll('tbody tr')).forEach(row => {
+            const name = row.dataset.name;
+            row.style.display = name.includes(filter) ? '' : 'none';
+        });
+    });
+
+    studentSearch.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        Array.from(studentTable.querySelectorAll('tbody tr')).forEach(row => {
+            const name = row.dataset.name;
+            const email = row.dataset.email;
+            row.style.display = name.includes(filter) || email.includes(filter) ? '' : 'none';
+        });
+    });
+
+    function selectRoutine(id, name, objective, level, button) {
+        routineInput.value = id;
+        selectedRoutineInfo.innerHTML = `<strong>Rutina seleccionada:</strong> ${name} — ${objective} (${level})`;
+        routineTable.querySelectorAll('tbody tr').forEach(row => row.classList.remove('selected-row'));
+        button.closest('tr').classList.add('selected-row');
+    }
+
+    function selectStudent(email, name, button) {
+        studentInput.value = email;
+        selectedStudentInfo.innerHTML = `<strong>Estudiante seleccionado:</strong> ${name} — ${email}`;
+        studentTable.querySelectorAll('tbody tr').forEach(row => row.classList.remove('selected-row'));
+        button.closest('tr').classList.add('selected-row');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (routineInput.value) {
+            const currentRoutineRow = routineTable.querySelector(`tbody tr[data-id='${routineInput.value}']`);
+            if (currentRoutineRow) {
+                currentRoutineRow.classList.add('selected-row');
+            }
+        }
+        if (studentInput.value) {
+            const currentStudentRow = studentTable.querySelector(`tbody tr[data-email='${studentInput.value.toLowerCase()}']`);
+            if (currentStudentRow) {
+                currentStudentRow.classList.add('selected-row');
+            }
+        }
+    });
+</script>
+@endpush

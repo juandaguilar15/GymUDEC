@@ -1,58 +1,61 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Nueva Máquina - GymUdec</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #f8f9fa; padding: 2rem; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #1B5E46; margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #444; }
-        input, select, textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; }
-        .btn { background: #1B5E46; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
-        .btn-back { background: #6c757d; margin-top: 1rem; text-decoration: none; display: block; text-align: center; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🏋️ Nueva Máquina</h1>
+@extends('layouts.admin')
 
-        <form action="{{ route('machines.store') }}" method="POST" enctype="multipart/form-data">
+@section('title', 'Nueva Máquina - GymUdec')
+@section('page-title', '🆕 Nueva Máquina')
+@section('page-subtitle', 'Registra una nueva máquina o equipo para el gimnasio.')
+@section('page-actions')
+    <a href="{{ route('machines.index') }}" class="btn-tertiary">← Volver al listado</a>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="errors">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="page-card">
+        <form action="{{ route('machines.store') }}" method="POST" enctype="multipart/form-data" class="grid gap-6">
             @csrf
+
             <div class="form-group">
-                <label>Nombre de la Máquina</label>
-                <input type="text" name="name" required placeholder="Ej: Prensa de Pierna">
+                <label for="name">Nombre de la Máquina</label>
+                <input id="name" name="name" type="text" value="{{ old('name') }}" placeholder="Ej: Prensa de Pierna" required />
             </div>
 
             <div class="form-group">
-                <label>Tipo</label>
-                <select name="type" required>
-                    <option value="cardio">Cardio</option>
-                    <option value="fuerza">Fuerza</option>
-                    <option value="mixto">Mixto</option>
+                <label for="type">Tipo</label>
+                <select id="type" name="type" required>
+                    <option value="">Seleccione un tipo</option>
+                    <option value="cardio" {{ old('type') === 'cardio' ? 'selected' : '' }}>Cardio</option>
+                    <option value="fuerza" {{ old('type') === 'fuerza' ? 'selected' : '' }}>Fuerza</option>
+                    <option value="mixto" {{ old('type') === 'mixto' ? 'selected' : '' }}>Mixto</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>Imagen de la Máquina</label>
-                <input type="file" name="image_url" accept="image/*">
-                <small style="color: #888;">Formatos: JPG, PNG. Máx: 2MB</small>
+                <label for="image_url">Imagen de la Máquina</label>
+                <input id="image_url" name="image_url" type="file" accept="image/*" />
+                <p class="info-text">Formatos: JPG, PNG. Máx: 2MB.</p>
             </div>
 
             <div class="form-group">
-                <label>Estado Inicial</label>
-                <select name="status" required>
-                    <option value="1">Disponible</option>
-                    <option value="0">En Mantenimiento</option>
+                <label for="status">Estado inicial</label>
+                <select id="status" name="status">
+                    <option value="1" {{ old('status', 1) ? 'selected' : '' }}>Disponible</option>
+                    <option value="0" {{ old('status') === '0' ? 'selected' : '' }}>Mantenimiento</option>
                 </select>
+                <p class="info-text">Si seleccionas mantenimiento, la máquina queda fuera de uso.</p>
             </div>
 
-            <button type="submit" class="btn">Guardar Máquina</button>
-            <a href="{{ route('machines.index') }}" class="btn btn-back">Volver al listado</a>
+            <div class="flex flex-col gap-4 sm:flex-row sm:justify-end">
+                <a href="{{ route('machines.index') }}" class="btn-tertiary">Cancelar</a>
+                <button type="submit" class="btn-primary">Guardar Máquina</button>
+            </div>
         </form>
     </div>
-</body>
-</html>
+@endsection

@@ -1,314 +1,87 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Ejercicio - GymUdec</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-        }
-        
-        .navbar {
-            background: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-        
-        .navbar-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1B5E46;
-            text-decoration: none;
-        }
-        
-        .navbar-logo-icon {
-            width: 40px;
-            height: 40px;
-            background: #1B5E46;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        
-        .btn {
-            padding: 0.6rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        h1 {
-            color: #1B5E46;
-            font-size: 28px;
-            margin-bottom: 2rem;
-        }
-        
-        .form-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        label {
-            font-weight: 600;
-            color: #1B5E46;
-            margin-bottom: 0.5rem;
-            font-size: 14px;
-        }
-        
-        input[type="text"],
-        input[type="url"],
-        select,
-        textarea {
-            padding: 0.8rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 4px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        input[type="text"]:focus,
-        input[type="url"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #1B5E46;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .form-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .btn-primary {
-            background: #1B5E46;
-            color: white;
-            flex: 1;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background: #2a7a5e;
-        }
-        
-        .btn-cancel {
-            flex: 1;
-            padding: 0.8rem;
-        }
-        
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #f5c6cb;
-        }
-        
-        .error-list {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        
-        .error-list li {
-            padding: 0.3rem 0;
-        }
-        
-        .image-preview {
-            margin-top: 0.5rem;
-            max-width: 200px;
-        }
-        
-        .image-preview img {
-            max-width: 100%;
-            border-radius: 4px;
-        }
-        
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .form-container {
-                padding: 1.5rem;
-            }
-            
-            .form-buttons {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="{{ route('dashboard') }}" class="navbar-logo">
-            <div class="navbar-logo-icon">💪</div>
-            <span>GymUdec</span>
-        </a>
-        <a href="{{ route('exercises.index') }}" class="btn btn-secondary">← Volver al Listado</a>
-    </nav>
+@extends('layouts.admin')
 
-    <div class="container">
-        <h1>✏️ Editar Ejercicio</h1>
-        
-        @if ($errors->any())
-            <div class="error-message">
-                <strong>Por favor corrige los siguientes errores:</strong>
-                <ul class="error-list">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('title', 'Editar Ejercicio - GymUdec')
+@section('page-title', '✏️ Editar Ejercicio')
+@section('page-subtitle', 'Actualiza los detalles del ejercicio y su máquina asociada.')
+@section('page-actions')
+    <a href="{{ route('exercises.index') }}" class="btn-tertiary">← Volver al listado</a>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="errors">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="page-card">
+        <form action="{{ route('exercises.update', $exercise->id) }}" method="POST" enctype="multipart/form-data" class="grid gap-6">
+            @csrf
+            @method('PUT')
+
+            <div class="form-group">
+                <label for="name">Nombre del Ejercicio</label>
+                <input id="name" name="name" type="text" value="{{ old('name', $exercise->name) }}" required />
             </div>
-        @endif
-        
-        <div class="form-container">
-            <form method="POST" action="{{ route('exercises.update', $exercise->id) }}" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
-                
+
+            <div class="grid gap-6 lg:grid-cols-2">
                 <div class="form-group">
-                    <label for="name">Nombre del Ejercicio *</label>
-                    <input type="text" id="name" name="name" required value="{{ old('name', $exercise->name) }}" placeholder="Ej: Press de Banca, Sentadilla...">
-                </div>
-                
-                <div class="form-group">
-                    <label for="type">Tipo de Ejercicio *</label>
+                    <label for="type">Tipo</label>
                     <select id="type" name="type" required>
-                        <option value="">-- Selecciona un tipo --</option>
-                        <option value="cardio" {{ old('type', $exercise->type) === 'cardio' ? 'selected' : '' }}>Cardio</option>
+                        <option value="">Seleccione un tipo</option>
                         <option value="fuerza" {{ old('type', $exercise->type) === 'fuerza' ? 'selected' : '' }}>Fuerza</option>
+                        <option value="cardio" {{ old('type', $exercise->type) === 'cardio' ? 'selected' : '' }}>Cardio</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
-                    <label for="description">Descripción del Ejercicio *</label>
-                    <textarea id="description" name="description" required placeholder="Describe el ejercicio, técnica, recomendaciones...">{{ old('description', $exercise->description) }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="muscle_group">Grupo Muscular *</label>
-                    <input type="text" id="muscle_group" name="muscle_group" required value="{{ old('muscle_group', $exercise->muscle_group) }}" placeholder="Ej: Pecho, Espalda, Piernas...">
-                </div>
-                
-                <div class="form-group">
-                    <label for="machine_id">Máquina Asociada *</label>
-                    <select id="machine_id" name="machine_id" required>
-                        <option value="">-- Selecciona una máquina --</option>
-                        @foreach ($machines as $machine)
-                            <option value="{{ $machine->id }}" {{ old('machine_id', $exercise->machine_id) == $machine->id ? 'selected' : '' }}>{{ $machine->name }} ({{ ucfirst($machine->type) }})</option>
+                    <label for="machine_id">Máquina Asociada</label>
+                    <select id="machine_id" name="machine_id">
+                        <option value="">Seleccione una máquina</option>
+                        @foreach($machines as $machine)
+                            <option value="{{ $machine->id }}" {{ old('machine_id', $exercise->machine_id) == $machine->id ? 'selected' : '' }}>{{ $machine->name }}</option>
                         @endforeach
                     </select>
                 </div>
+            </div>
 
+            <div class="grid gap-6 lg:grid-cols-2">
                 <div class="form-group">
-                    <label for="exercise_format">Formato de Ejecución *</label>
+                    <label for="exercise_format">Formato</label>
                     <select id="exercise_format" name="exercise_format" required>
                         <option value="series_reps" {{ old('exercise_format', $exercise->exercise_format) === 'series_reps' ? 'selected' : '' }}>Series y Repeticiones</option>
-                        <option value="duration" {{ old('exercise_format', $exercise->exercise_format) === 'duration' ? 'selected' : '' }}>Por Duración (Tiempo)</option>
+                        <option value="duration" {{ old('exercise_format', $exercise->exercise_format) === 'duration' ? 'selected' : '' }}>Duración</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
-                    <label for="image_url">Cambiar Imagen (Poster/Miniatura)</label>
-                    <input type="file" id="image_url" name="image_url" accept="image/*">
-                    @if ($exercise->image_url)
-                        <div class="image-preview">
-                            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Imagen actual:</p>
-                            <img src="{{ $exercise->image_url }}" alt="{{ $exercise->name }}">
-                        </div>
-                    @endif
+                    <label for="muscle_group">Grupo Muscular</label>
+                    <input id="muscle_group" name="muscle_group" type="text" value="{{ old('muscle_group', $exercise->muscle_group) }}" required />
                 </div>
-                
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" required>{{ old('description', $exercise->description) }}</textarea>
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-2">
                 <div class="form-group">
-                    <label for="media_url">Cambiar Video Demostrativo</label>
-                    <input type="file" id="media_url" name="media_url" accept="video/*">
-                    <small style="color: #888;">Formatos aceptados: MP4, MOV. Máx: 20MB</small>
-                    @if ($exercise->media_url)
-                        <div class="image-preview" style="margin-top: 10px;">
-                            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Video actual:</p>
-                            <video width="250" controls>
-                                <source src="{{ $exercise->media_url }}" type="video/mp4">
-                                Tu navegador no soporta el elemento de video.
-                            </video>
-                        </div>
-                    @endif
+                    <label for="image_url">Cambiar imagen</label>
+                    <input id="image_url" name="image_url" type="file" accept="image/*" />
                 </div>
-                
-                <div class="form-buttons">
-                    <button type="submit" class="btn-primary">💾 Actualizar Ejercicio</button>
-                    <a href="{{ route('exercises.index') }}" class="btn btn-cancel">Cancelar</a>
+                <div class="form-group">
+                    <label for="media_url">Cambiar video</label>
+                    <input id="media_url" name="media_url" type="file" accept="video/*" />
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:justify-end">
+                <a href="{{ route('exercises.index') }}" class="btn-tertiary">Cancelar</a>
+                <button type="submit" class="btn-primary">Actualizar Ejercicio</button>
+            </div>
+        </form>
     </div>
-</body>
-</html>
+@endsection

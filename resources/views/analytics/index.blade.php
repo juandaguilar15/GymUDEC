@@ -465,7 +465,7 @@
             });
 
             // Rango de edades
-            const ageRangeData = @json($statistics['ageRange']);
+            const ageRangeData = @json($statistics['ageRanges']);
             const ageRangeLabels = Object.keys(ageRangeData);
             const ageRangeValues = Object.values(ageRangeData);
 
@@ -491,62 +491,3 @@
         @endif
     </script>
 @endsection
-                    }],
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
-                    },
-                },
-            });
-            
-            // Edad por género
-            const ageByGender = @json($statistics['ageByGender']);
-            new Chart(document.getElementById('ageByGenderChart'), {
-                type: 'bar',
-                data: {
-                    labels: weightLabels,
-                    datasets: [{
-                        label: 'Edad Promedio',
-                        data: Object.values(ageByGender),
-                        backgroundColor: colors.primary,
-                    }],
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
-                    },
-                },
-            });
-            
-            // Rango de edades
-            const ageRanges = @json($statistics['ageRanges']);
-            new Chart(document.getElementById('ageRangeChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(ageRanges),
-                    datasets: [{
-                        label: 'Cantidad de Estudiantes',
-                        data: Object.values(ageRanges),
-                        backgroundColor: colors.accent,
-                    }],
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
-                    },
-                },
-            });
-        @endif
-    </script>
-</body>
-</html>

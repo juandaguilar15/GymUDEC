@@ -5,27 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\PhysicalInfo;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class NurseController extends Controller
+class NurseController extends Controller implements HasMiddleware
 {
-    private function authorizeNurse()
+    /**
+     * Middleware para asegurar que solo el enfermero acceda
+     */
+    public static function middleware(): array
     {
-        if (! auth()->check() || auth()->user()->role !== 'enfermero') {
-            abort(403, 'Acceso denegado.');
-        }
+        return ['auth', 'role:enfermero'];
     }
 
     // Mostrar formulario para buscar estudiante
     public function searchStudentForm()
     {
-        $this->authorizeNurse();
         return view('nurse.search-student');
     }
     
     // Buscar estudiante por email
     public function searchStudent(Request $request)
     {
-        $this->authorizeNurse();
         $request->validate([
             'email' => 'required|email|ends_with:@ucundinamarca.edu.co',
         ]);
@@ -46,7 +46,6 @@ class NurseController extends Controller
     // Mostrar formulario de información física
     public function showPhysicalForm($email)
     {
-        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->first();
         
@@ -57,27 +56,18 @@ class NurseController extends Controller
     }
     
     // Guardar/actualizar información física
-    public function savePhysicalInfo(Request $request, $email)
+    public function savePhysicalInfo(\App\Http\Requests\StorePhysicalInfoRequest $request, $email)
     {
-        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
-        
-        $validated = $request->validate([
-            'age' => 'required|integer|min:15|max:100',
-            'date_of_birth' => 'required|date|before:today',
-            'height' => 'required|numeric|min:1|max:3',
-            'gender' => 'required|in:masculino,femenino,otro',
-            'weight' => 'required|numeric|min:20|max:300',
-            'condition' => 'nullable|string|max:1000',
-            'recommendation' => 'nullable|string|max:1000',
-            'permisos' => 'required|in:libre,limitado',
-        ]);
-        
+
+        // El FormRequest ya valida y autoriza
+        $validated = $request->validated();
+
         $physicalInfo = PhysicalInfo::updateOrCreate(
             ['email' => $email],
             array_merge($validated, ['email' => $email])
         );
-        
+
         return redirect()->route('nurse.search-student')
             ->with('success', "Información física de {$user->name} guardada exitosamente.");
     }
@@ -85,7 +75,6 @@ class NurseController extends Controller
     // Ver información física de un estudiante
     public function viewStudentInfo($email)
     {
-        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->firstOrFail();
         
@@ -98,7 +87,6 @@ class NurseController extends Controller
     // Listar todos los estudiantes con información física registrada
     public function listStudents()
     {
-        $this->authorizeNurse();
         $physicalInfos = PhysicalInfo::with('user')
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
@@ -111,7 +99,6 @@ class NurseController extends Controller
     // Eliminar información física de un estudiante
     public function deletePhysicalInfo($email)
     {
-        $this->authorizeNurse();
         $user = User::where('email', $email)->firstOrFail();
         $physicalInfo = PhysicalInfo::where('email', $email)->firstOrFail();
         
@@ -119,5 +106,17 @@ class NurseController extends Controller
         
         return redirect()->route('nurse.list-students')
             ->with('success', "Información física de {$user->name} eliminada correctamente.");
+    }
+
+    // Obtener información física en formato JSON (para AJAX)
+    public function getPhysicalInfoJson($email)
+    {
+        if (! auth()->check() || !in_array(auth()->user()->role, ['administrador', 'enfermero'])) {
+            abort(403, 'Acceso denegado.');
+        }
+
+        $physicalInfo = PhysicalInfo::where('email', $email)->firstOrFail();
+        
+        return response()->json($physicalInfo, 200);
     }
 }

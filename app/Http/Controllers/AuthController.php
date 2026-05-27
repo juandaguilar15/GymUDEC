@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
 {
@@ -26,11 +27,15 @@ class AuthController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users|ends_with:@ucundinamarca.edu.co',
-                'password' => 'required|string|min:8|confirmed',
+                'password' => ['required', 'confirmed', PasswordRule::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                ],
             ], [
                 'email.ends_with' => 'El correo debe ser del dominio @ucundinamarca.edu.co',
                 'email.unique' => 'Este correo ya está registrado',
                 'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+                'password.*' => 'La contraseña debe contener mayúsculas, minúsculas y números',
             ]);
             
             // Crear usuario con rol por defecto
@@ -41,10 +46,11 @@ class AuthController extends Controller
                 'role' => 'estudiante',
             ]);
             
-            // Autenticar al usuario
+            // Autenticar al usuario y regenerar sesión
             Auth::login($user);
-            
-            return redirect('/dashboard')->with('success', '¡Bienvenido a GymUdec! Tu cuenta ha sido creada exitosamente.');
+            $request->session()->regenerate();
+
+            return redirect()->intended('/dashboard')->with('success', '¡Bienvenido a GymUdec! Tu cuenta ha sido creada exitosamente.');
         } catch (\Exception $e) {
             return back()->withInput($request->only('name', 'email'))->withErrors([
                 'error' => 'Error al registrar: ' . $e->getMessage()
@@ -65,16 +71,23 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
-        
+
+        $credentials = $request->only('email', 'password');
+
         // Intentar autenticar
-        if (Auth::attempt([
-            'email' => $request->email,
-            'password' => $request->password,
-        ])) {
-            return redirect('/dashboard')->with('success', '¡Sesión iniciada correctamente!');
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+            if ($user->role === 'administrador') {
+                return redirect()->intended(route('admin.index'))
+                    ->with('success', '¡Sesión iniciada correctamente!');
+            }
+
+            return redirect()->intended('/dashboard')->with('success', '¡Sesión iniciada correctamente!');
         }
-        
-        return back()->withErrors([
+
+        return back()->withInput($request->only('email'))->withErrors([
             'email' => 'Las credenciales no coinciden con nuestros registros.',
         ]);
     }
@@ -129,9 +142,13 @@ class AuthController extends Controller
     }
     
     // Logout
-    public function logout()
+    public function logout(Request $request)
     {
         Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect('/')->with('success', 'Sesión cerrada correctamente');
     }
 }

@@ -1,184 +1,103 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Información Física - GymUdec</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1B5E46 0%, #2a7a5e 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            padding: 40px;
-            max-width: 700px;
-            width: 100%;
-        }
-        h1 {
-            color: #1B5E46;
-            font-size: 24px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .info-card {
-            background: #f9f9f9;
-            padding: 20px;
-            border-left: 4px solid #F8B803;
-            border-radius: 5px;
-            margin-bottom: 25px;
-        }
-        .info-card h3 {
-            color: #1B5E46;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .info-card p { color: #333; font-size: 15px; margin: 4px 0; }
-        .info-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
-        .info-item { padding: 15px; background: #f0f0f0; border-radius: 5px; }
-        .info-item-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
-        .info-item-value { font-size: 16px; color: #1B5E46; font-weight: 600; }
-        .highlight-item { background: #eef7f4; border: 1px solid #1B5E46; }
-        .imc-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-        .imc-normal { background: #d4edda; color: #155724; }
-        .imc-warning { background: #fff3cd; color: #856404; }
-        .imc-danger { background: #f8d7da; color: #721c24; }
-        
-        .text-section { margin-bottom: 15px; padding: 15px; background: #f0f0f0; border-radius: 5px; }
-        .text-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
-        .text-value { font-size: 14px; color: #333; line-height: 1.5; white-space: pre-wrap; }
-        
-        .permiso-tag {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 12px;
-            text-transform: uppercase;
-            background: #1B5E46;
-            color: white;
-            margin-top: 10px;
-        }
+@extends('layouts.student')
 
-        .button-group { display: flex; gap: 10px; margin-top: 30px; }
-        .back-btn {
-            flex: 1;
-            padding: 12px;
-            background: #F8B803;
-            color: #1B5E46;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.3s;
-        }
-        .back-btn:hover { background: #e8a803; transform: translateY(-2px); }
-        .timestamp { font-size: 11px; color: #999; margin-top: 10px; text-align: right; }
-        
-        @media (max-width: 768px) { .info-row { grid-template-columns: 1fr 1fr; } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 Mi Ficha Médica</h1>
+@section('title', 'Mi Ficha Médica - GymUdec')
+@section('page-title', 'Mi Ficha Médica')
+@section('page-subtitle', 'Resumen clínico y recomendaciones relevantes para tu entrenamiento')
 
-        <div class="info-card">
-            <h3>Datos de Usuario</h3>
-            <p><strong>Nombre:</strong> {{ auth()->user()->name }}</p>
-            <p><strong>Correo:</strong> {{ auth()->user()->email }}</p>
-            <div class="permiso-tag">Permiso de entrenamiento: {{ $physicalInfo->permisos }}</div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-item">
-                <div class="info-item-label">Género</div>
-                <div class="info-item-value">{{ ucfirst($physicalInfo->gender) }}</div>
+@section('fullwidth')@endsection
+@section('content')
+    <section class="w-full bg-gradient-to-r from-emerald-50 to-white rounded-2xl p-6 mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-extrabold text-emerald-950">Tu ficha médica</h2>
+                <p class="text-slate-600 mt-1">Resumen clínico y recomendaciones esenciales para tu entrenamiento, con todo el registro de enfermería en un solo panel.</p>
             </div>
-            <div class="info-item">
-                <div class="info-item-label">Edad</div>
-                <div class="info-item-value">{{ $physicalInfo->age }} años</div>
-            </div>
-            <div class="info-item">
-                <div class="info-item-label">Nacimiento</div>
-                <div class="info-item-value">{{ $physicalInfo->date_of_birth->format('d/m/Y') }}</div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('dashboard') }}" class="btn-tertiary">Volver al dashboard</a>
             </div>
         </div>
+    </section>
 
-        <h2 style="color: #1B5E46; font-size: 16px; margin: 20px 0 10px; font-weight: 600; border-bottom: 2px solid #F8B803; display: inline-block;">Mediciones Corporales</h2>
-        <div class="info-row">
-            <div class="info-item highlight-item">
-                <div class="info-item-label">Altura</div>
-                <div class="info-item-value">{{ $physicalInfo->height }} m</div>
-            </div>
-            <div class="info-item highlight-item">
-                <div class="info-item-label">Peso</div>
-                <div class="info-item-value">{{ $physicalInfo->weight }} kg</div>
-            </div>
-            <div class="info-item highlight-item">
-                <div class="info-item-label">Índice (IMC)</div>
-                <div class="info-item-value">
-                    @php
-                        $imc = $physicalInfo->weight / ($physicalInfo->height ** 2);
-                        $formattedImc = number_format($imc, 2);
-                        
-                        $class = 'imc-normal';
-                        $status = 'Normal';
-                        if($imc < 18.5) { $class = 'imc-warning'; $status = 'Bajo peso'; }
-                        else if($imc >= 25 && $imc < 30) { $class = 'imc-warning'; $status = 'Sobrepeso'; }
-                        else if($imc >= 30) { $class = 'imc-danger'; $status = 'Obesidad'; }
-                    @endphp
-                    {{ $formattedImc }}
-                    <div class="imc-badge {{ $class }}">{{ $status }}</div>
+    <div class="max-w-4xl mx-auto">
+        <article class="bg-white rounded-2xl shadow-md border border-emerald-50 p-6">
+            <div class="flex flex-col lg:flex-row lg:items-start gap-6 text-center lg:text-left">
+                <div class="flex items-center gap-5">
+                    <div class="w-20 h-20 rounded-xl bg-emerald-600 grid place-items-center text-white text-3xl font-bold">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-emerald-950">{{ auth()->user()->name }}</h3>
+                        <p class="text-sm text-slate-500">{{ auth()->user()->email }}</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">Permiso: {{ ucfirst($physicalInfo->permisos ?? 'Desconocido') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:ml-auto w-full lg:w-1/3 grid grid-cols-3 gap-3">
+                    <div class="p-3 bg-emerald-50 rounded-lg text-center">
+                        <p class="text-xs text-slate-500 uppercase">Edad</p>
+                        <p class="text-lg font-semibold text-emerald-950">{{ $physicalInfo->age ? number_format($physicalInfo->age,0) . ' años' : '—' }}</p>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-lg text-center">
+                        <p class="text-xs text-slate-500 uppercase">Altura</p>
+                        <p class="text-lg font-semibold text-emerald-950">{{ $physicalInfo->height ? number_format($physicalInfo->height,2) . ' m' : '—' }}</p>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-lg text-center">
+                        <p class="text-xs text-slate-500 uppercase">Peso</p>
+                        <p class="text-lg font-semibold text-emerald-950">{{ $physicalInfo->weight ? number_format($physicalInfo->weight,1) . ' kg' : '—' }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="text-section">
-            <div class="text-label">⚕️ Condición Médica Registrada</div>
-            <div class="text-value">{{ $physicalInfo->condition ?? 'Sin condiciones especiales reportadas.' }}</div>
-        </div>
+            <div class="mt-6 grid gap-4 md:grid-cols-3">
+                <div class="p-4 bg-slate-50 rounded-lg">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Datos personales</p>
+                    <div class="mt-2 text-sm text-slate-700">
+                        <p><strong>Género:</strong> {{ ucfirst($physicalInfo->gender ?? 'No especificado') }}</p>
+                        <p><strong>Fecha de nacimiento:</strong> {{ optional($physicalInfo->date_of_birth)->format('d/m/Y') ?? '—' }}</p>
+                    </div>
+                </div>
 
-        <div class="text-section">
-            <div class="text-label">💡 Recomendaciones del Enfermero</div>
-            <div class="text-value">{{ $physicalInfo->recommendation ?? 'Sin recomendaciones registradas.' }}</div>
-        </div>
+                <div class="p-4 bg-slate-50 rounded-lg">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">IMC (Índice de Masa Corporal)</p>
+                    <div class="mt-2 text-sm text-slate-700">
+                        @php
+                            $imc = null;
+                            if(!empty($physicalInfo->height) && !empty($physicalInfo->weight)) {
+                                $imc = $physicalInfo->weight / ($physicalInfo->height ** 2);
+                                $imcFormatted = number_format($imc, 1);
+                                if ($imc < 18.5) $imcCategory = 'Bajo peso';
+                                elseif ($imc < 25) $imcCategory = 'Normal';
+                                elseif ($imc < 30) $imcCategory = 'Sobrepeso';
+                                else $imcCategory = 'Obesidad';
+                            }
+                        @endphp
+                        <p class="text-lg font-semibold text-emerald-950">{{ $imc ? "$imcFormatted - $imcCategory" : '—' }}</p>
+                    </div>
+                </div>
 
-        <div class="timestamp">
-            Ficha médica oficial de GymUDEC<br>
-            Generado el: {{ now()->format('d/m/Y H:i') }}<br>
-            Última actualización de enfermería: {{ $physicalInfo->updated_at->format('d/m/Y H:i') }}
-        </div>
+                <div class="p-4 bg-slate-50 rounded-lg">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Permisos</p>
+                    <div class="mt-2 text-sm text-slate-700">
+                        <p class="text-lg font-semibold text-emerald-950">{{ ucfirst($physicalInfo->permisos ?? '—') }}</p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="button-group">
-            <a href="{{ route('dashboard') }}" class="back-btn">← Volver al Dashboard</a>
-        </div>
+            <div class="mt-6">
+                <h4 class="text-sm font-semibold text-slate-700">Notas clínicas / Historial de enfermería</h4>
+                <div class="mt-3 grid gap-3">
+                    <div class="p-4 bg-white rounded-lg border border-emerald-50">
+                        <p class="text-sm text-slate-700 whitespace-pre-line">@if(trim($physicalInfo->condition ?? '') !== ''){{ $physicalInfo->condition }}@else Sin notas clínicas adicionales registradas.@endif</p>
+                    </div>
+
+                    <div class="p-4 bg-white rounded-lg border border-emerald-50">
+                        <p class="text-sm text-slate-700">💡 <strong>Recomendaciones:</strong></p>
+                        <p class="mt-2 text-sm text-slate-700">{{ $physicalInfo->recommendation ?? 'No hay recomendaciones registradas.' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 text-sm text-slate-500">Última actualización: {{ optional($physicalInfo->updated_at)->format('d/m/Y H:i') ?? '—' }}</div>
+        </article>
     </div>
-</body>
-</html>
+@endsection
